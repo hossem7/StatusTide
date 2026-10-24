@@ -1,0 +1,13 @@
+# Shared manifests for k3d locally and k3s on EC2. Overlays set the image tags.
+# The statustide-secrets secret is created from .env, never stored here (see README).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: statustide
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - redis.yaml
+  - rabbitmq.yaml
+  - api.yaml
+  - publisher.yaml
+  - subscriber.yaml

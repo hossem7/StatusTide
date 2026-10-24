@@ -13,7 +13,14 @@ cd WebUI && npm ci                    # frontend dependencies
 npm run lint                          # oxlint
 npm run build                         # type check + production build
 npm run dev                           # http://localhost:5173, proxies /api and /hubs to the API
+
+cp .env.example .env                  # once; local values only
+docker compose up --build             # whole stack; API on 5080, web app on 8080
+docker compose up -d postgres redis rabbitmq storage mailpit   # infrastructure only
+kubectl kustomize k8s/local           # render the k3d manifests (full k3d steps in README)
 ```
+
+Infrastructure lives in `compose.yaml` and `k8s/`. `k8s/base` is shared with production k3s, so keep local-only changes in `k8s/local`. Secrets come from `.env` (Compose) or the `statustide-secrets` secret (Kubernetes), never from files in the repo.
 
 CI (`.github/workflows/ci.yml`) runs the same build, test, lint and build steps, then builds a Docker image for each app. Run them locally before opening a PR.
 

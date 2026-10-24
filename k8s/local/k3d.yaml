@@ -1,0 +1,11 @@
+# Local cluster: k3d cluster create --config k8s/local/k3d.yaml
+# Traefik is reachable at http://localhost:8090, for example http://localhost:8090/health.
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: statustide
+servers: 1
+ports:
+  - port: 127.0.0.1:8090:80
+    nodeFilters:
+      - loadbalancer

@@ -1,0 +1,41 @@
+# Subscribers can scale out: RabbitMQ shares messages between replicas.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscriber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subscriber
+  template:
+    metadata:
+      labels:
+        app: subscriber
+    spec:
+      containers:
+        - name: subscriber
+          image: ghcr.io/hossem7/statustide-subscriber
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: statustide-secrets
+                  key: POSTGRES_PASSWORD
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: statustide-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: ConnectionStrings__Postgres
+              value: Host=postgres;Port=5432;Database=statustide;Username=statustide;Password=$(POSTGRES_PASSWORD)
+            - name: ConnectionStrings__Redis
+              value: redis:6379
+            - name: ConnectionStrings__RabbitMq
+              value: amqp://statustide:$(RABBITMQ_PASSWORD)@rabbitmq:5672/
+          resources:
+            requests:
+              cpu: 20m
+              memory: 96Mi
+            limits:
+              memory: 192Mi

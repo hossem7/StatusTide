@@ -1,0 +1,15 @@
+# k3d overlay: use the images built by Docker Compose and imported into the cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+images:
+  - name: ghcr.io/hossem7/statustide-api
+    newName: statustide-api
+    newTag: local
+  - name: ghcr.io/hossem7/statustide-publisher
+    newName: statustide-publisher
+    newTag: local
+  - name: ghcr.io/hossem7/statustide-subscriber
+    newName: statustide-subscriber
+    newTag: local

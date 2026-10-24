@@ -1,0 +1,127 @@
+# Local stack. Copy .env.example to .env first, then run: docker compose up --build
+# Infrastructure only, for running the .NET apps with dotnet run:
+#   docker compose up postgres redis rabbitmq storage mailpit
+# Ports bind to 127.0.0.1 so nothing is reachable from the network.
+name: statustide
+
+x-app-environment: &app-environment
+  ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=statustide;Username=statustide;Password=${POSTGRES_PASSWORD:?Copy .env.example to .env}
+  ConnectionStrings__Redis: redis:6379
+  ConnectionStrings__RabbitMq: amqp://statustide:${RABBITMQ_PASSWORD:?Copy .env.example to .env}@rabbitmq:5672/
+
+x-app-depends-on: &app-depends-on
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: statustide
+      POSTGRES_USER: statustide
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env}
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "statustide", "-d", "statustide"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - 127.0.0.1:6379:6379
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    # RabbitMQ stores data under its node name, which comes from the hostname.
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: statustide
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Copy .env.example to .env}
+    ports:
+      - 127.0.0.1:5672:5672
+      - 127.0.0.1:15672:15672
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # S3 stand-in. MinIO no longer publishes Docker images, so this is SeaweedFS.
+  storage:
+    image: chrislusf/seaweedfs:4.48
+    command: mini -dir=/data -master.telemetry=false
+    environment:
+      AWS_ACCESS_KEY_ID: ${LOCAL_S3_ACCESS_KEY:?Copy .env.example to .env}
+      AWS_SECRET_ACCESS_KEY: ${LOCAL_S3_SECRET_KEY:?Copy .env.example to .env}
+    ports:
+      - 127.0.0.1:8333:8333
+    volumes:
+      - storage-data:/data
+
+  # SES stand-in. SMTP on 1025, inbox at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.32
+    ports:
+      - 127.0.0.1:1025:1025
+      - 127.0.0.1:8025:8025
+
+  api:
+    build:
+      context: .
+      dockerfile: StatusTide.Api/Dockerfile
+    image: statustide-api:local
+    environment: *app-environment
+    ports:
+      - 127.0.0.1:5080:8080
+    depends_on: *app-depends-on
+    restart: unless-stopped
+
+  publisher:
+    build:
+      context: .
+      dockerfile: StatusTide.Publisher/Dockerfile
+    image: statustide-publisher:local
+    environment: *app-environment
+    depends_on: *app-depends-on
+    restart: unless-stopped
+
+  subscriber:
+    build:
+      context: .
+      dockerfile: StatusTide.Subscriber/Dockerfile
+    image: statustide-subscriber:local
+    environment: *app-environment
+    depends_on: *app-depends-on
+    restart: unless-stopped
+
+  web:
+    build: WebUI
+    image: statustide-web:local
+    ports:
+      - 127.0.0.1:8080:8080
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  storage-data:
