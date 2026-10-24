@@ -9,6 +9,12 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
   </ItemGroup>
 
+  <!-- Stay on MassTransit 8.x: it is Apache 2.0. Version 9 and later need a commercial license. -->
+  <ItemGroup Label="Messaging">
+    <PackageVersion Include="MassTransit" Version="8.5.12" />
+    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.12" />
+  </ItemGroup>
+
   <ItemGroup Label="Logging">
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />

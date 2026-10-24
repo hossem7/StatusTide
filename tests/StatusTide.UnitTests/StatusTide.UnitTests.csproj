@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\StatusTide.Core\StatusTide.Core.csproj" />
-    <ProjectReference Include="..\..\StatusTide.Infrastructure\StatusTide.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\StatusTide.Contracts\StatusTide.Contracts.csproj" />
+    <ProjectReference Include="..\..\StatusTide.Common\StatusTide.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

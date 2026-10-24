@@ -64,9 +64,12 @@ jobs:
           - name: api
             context: .
             file: StatusTide.Api/Dockerfile
-          - name: workers
+          - name: publisher
             context: .
-            file: StatusTide.Workers/Dockerfile
+            file: StatusTide.Publisher/Dockerfile
+          - name: subscriber
+            context: .
+            file: StatusTide.Subscriber/Dockerfile
           - name: web
             context: WebUI
             file: WebUI/Dockerfile

@@ -1,9 +1,10 @@
 using Serilog;
-using StatusTide.Infrastructure.Logging;
+using StatusTide.Common.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddStatusTideLogging(builder.Configuration, builder.Environment);
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
@@ -15,6 +16,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapControllers();
 
 // Liveness only for now. Dependency checks (PostgreSQL, Redis, RabbitMQ) join a
 // readiness endpoint once the app actually uses those services.

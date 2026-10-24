@@ -4,13 +4,13 @@ WORKDIR /src
 
 # Restore first so the package layer is cached until a project file changes.
 COPY global.json Directory.Build.props Directory.Packages.props .editorconfig ./
-COPY StatusTide.Core/StatusTide.Core.csproj StatusTide.Core/
-COPY StatusTide.Infrastructure/StatusTide.Infrastructure.csproj StatusTide.Infrastructure/
+COPY StatusTide.Contracts/StatusTide.Contracts.csproj StatusTide.Contracts/
+COPY StatusTide.Common/StatusTide.Common.csproj StatusTide.Common/
 COPY StatusTide.Api/StatusTide.Api.csproj StatusTide.Api/
 RUN dotnet restore StatusTide.Api/StatusTide.Api.csproj
 
-COPY StatusTide.Core/ StatusTide.Core/
-COPY StatusTide.Infrastructure/ StatusTide.Infrastructure/
+COPY StatusTide.Contracts/ StatusTide.Contracts/
+COPY StatusTide.Common/ StatusTide.Common/
 COPY StatusTide.Api/ StatusTide.Api/
 RUN dotnet publish StatusTide.Api/StatusTide.Api.csproj -c Release --no-restore -o /app
 

@@ -1,7 +1,7 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "StatusTide.Workers": {
+    "StatusTide.Publisher": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "environmentVariables": {

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Formatting.Compact;
 
-namespace StatusTide.Infrastructure.Logging;
+namespace StatusTide.Common.Logging;
 
 public static class LoggingExtensions
 {
