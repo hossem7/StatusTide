@@ -1,4 +1,4 @@
-# Build from the web folder: docker build web
+# Build from the WebUI folder: docker build WebUI
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

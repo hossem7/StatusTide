@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: web
+        working-directory: WebUI
     steps:
       - uses: actions/checkout@v7
 
@@ -44,7 +44,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: WebUI/package-lock.json
 
       - run: npm ci
       - run: npm run lint
@@ -63,13 +63,13 @@ jobs:
         include:
           - name: api
             context: .
-            file: src/StatusTide.Api/Dockerfile
+            file: StatusTide.Api/Dockerfile
           - name: workers
             context: .
-            file: src/StatusTide.Workers/Dockerfile
+            file: StatusTide.Workers/Dockerfile
           - name: web
-            context: web
-            file: web/Dockerfile
+            context: WebUI
+            file: WebUI/Dockerfile
     steps:
       - uses: actions/checkout@v7
 

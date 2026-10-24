@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\StatusTide.Api\StatusTide.Api.csproj" />
+    <ProjectReference Include="..\..\StatusTide.Api\StatusTide.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

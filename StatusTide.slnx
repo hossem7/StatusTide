@@ -1,10 +1,8 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/StatusTide.Api/StatusTide.Api.csproj" />
-    <Project Path="src/StatusTide.Core/StatusTide.Core.csproj" />
-    <Project Path="src/StatusTide.Infrastructure/StatusTide.Infrastructure.csproj" />
-    <Project Path="src/StatusTide.Workers/StatusTide.Workers.csproj" />
-  </Folder>
+  <Project Path="StatusTide.Api/StatusTide.Api.csproj" />
+  <Project Path="StatusTide.Core/StatusTide.Core.csproj" />
+  <Project Path="StatusTide.Infrastructure/StatusTide.Infrastructure.csproj" />
+  <Project Path="StatusTide.Workers/StatusTide.Workers.csproj" />
   <Folder Name="/tests/">
     <Project Path="tests/StatusTide.IntegrationTests/StatusTide.IntegrationTests.csproj" />
     <Project Path="tests/StatusTide.UnitTests/StatusTide.UnitTests.csproj" />
