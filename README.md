@@ -104,9 +104,36 @@ Each milestone ends with something that runs and can be demonstrated.
 
 ## Running it locally
 
-Requirements: .NET 10 SDK, Node.js 24 and Docker.
+Requirements: .NET 10 SDK, Node.js 24 and Docker. For the Kubernetes setup, also [k3d](https://k3d.io) and kubectl.
+
+First copy the example settings. They are local development values, and `.env` is ignored by Git.
 
 ```bash
+cp .env.example .env
+```
+
+### Everything in Docker Compose
+
+```bash
+docker compose up --build
+```
+
+| Service | Address |
+| --- | --- |
+| API | http://localhost:5080 (health check at `/health`) |
+| Web app | http://localhost:8080 |
+| RabbitMQ management | http://localhost:15672 (user `statustide`) |
+| Mailpit inbox | http://localhost:8025 |
+| S3 stand-in (SeaweedFS) | http://localhost:8333 |
+| PostgreSQL, Redis | localhost:5432, localhost:6379 |
+
+### Running the code from your editor
+
+Start only the infrastructure, then run the apps with `dotnet run` and `npm run dev`. `appsettings.Development.json` already points at these containers.
+
+```bash
+docker compose up -d postgres redis rabbitmq storage mailpit
+
 dotnet build                          # build the .NET solution
 dotnet test                           # unit and integration tests
 dotnet run --project StatusTide.Api   # API on http://localhost:5080 (health check at /health)
@@ -116,18 +143,27 @@ npm ci
 npm run dev                           # frontend on http://localhost:5173
 ```
 
-The Publisher and Subscriber need RabbitMQ. A Docker Compose file for PostgreSQL, Redis, RabbitMQ, MinIO and Mailpit is coming with [#1](https://github.com/hossem7/StatusTide/issues/1). Until then:
+### Kubernetes with k3d
+
+The same manifests run on k3s in production. `k8s/base` holds them, and `k8s/local` swaps in the images built by Compose.
 
 ```bash
-docker run -d --name statustide-rabbitmq -p 5672:5672 -p 15672:15672 \
-  -e RABBITMQ_DEFAULT_USER=statustide -e RABBITMQ_DEFAULT_PASS=statustide-dev \
-  rabbitmq:4-management-alpine
+k3d cluster create --config k8s/local/k3d.yaml
+docker compose build api publisher subscriber
+k3d image import statustide-api:local statustide-publisher:local statustide-subscriber:local -c statustide
+
+kubectl apply -f k8s/base/namespace.yaml
+kubectl -n statustide create secret generic statustide-secrets --from-env-file=.env
+kubectl apply -k k8s/local
+
+curl http://localhost:8090/health     # Traefik routes /api, /hubs and /health to the API
 ```
 
-How the local setup works:
+Remove the cluster with `k3d cluster delete statustide`. The web app is not in the cluster, because production serves it from S3 through CloudFront.
 
+### How the local setup works
 
-- Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: MinIO for S3, Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
+- Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: SeaweedFS for S3 (MinIO no longer publishes Docker images), Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
 - No real vendor is polled during development. Readers are built and tested against recorded sample responses, plus the demo vendor.
 
 ## About the data

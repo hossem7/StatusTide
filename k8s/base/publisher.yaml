@@ -1,0 +1,44 @@
+# Always one replica: two schedulers would publish every poll twice.
+# Recreate stops the old pod before the new one starts, so a rollout never runs two.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: publisher
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: publisher
+  template:
+    metadata:
+      labels:
+        app: publisher
+    spec:
+      containers:
+        - name: publisher
+          image: ghcr.io/hossem7/statustide-publisher
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: statustide-secrets
+                  key: POSTGRES_PASSWORD
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: statustide-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: ConnectionStrings__Postgres
+              value: Host=postgres;Port=5432;Database=statustide;Username=statustide;Password=$(POSTGRES_PASSWORD)
+            - name: ConnectionStrings__Redis
+              value: redis:6379
+            - name: ConnectionStrings__RabbitMq
+              value: amqp://statustide:$(RABBITMQ_PASSWORD)@rabbitmq:5672/
+          resources:
+            requests:
+              cpu: 20m
+              memory: 96Mi
+            limits:
+              memory: 192Mi
