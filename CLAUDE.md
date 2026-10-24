@@ -34,6 +34,7 @@ Rules:
 
 - **Executables never reference each other.** Api, Publisher and Subscriber share only Contracts and Common. They communicate through messages, never direct calls.
 - **Contracts are plain records with no dependencies** (no MassTransit, no EF Core). Commands are named as instructions (`PollVendor`), events in the past tense (`VendorStatusChanged`). Never change a message's meaning in place; add a new one instead.
+- **Never rename or move a message type.** MassTransit identifies a message by its full type name, including the namespace, so renaming `PollVendor` or moving it to another namespace silently stops delivery to running consumers. Add a new message type instead, migrate publishers and consumers to it, then remove the old one.
 - **Group code by feature, not by type**: `StatusTide.Subscriber/Features/Polling/PollVendorConsumer.cs`, `StatusTide.Api/Features/Follows/FollowsController.cs`. Keep a feature's consumer, logic and data access together.
 - **Separate writes from reads (light CQRS).** Commands enforce rules and change state. Queries change nothing, use `AsNoTracking`, and return DTOs shaped for the screen. One PostgreSQL database; no separate read store or event sourcing.
 - **Consumers must be idempotent.** MassTransit retries a failing message 5 times (exponential backoff, 1 to 30 s, see `MessagingDefaults`), then moves it to the `_error` queue. A message can arrive more than once.
