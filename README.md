@@ -23,26 +23,42 @@ When production breaks, the first question is usually "is it us, or something we
 
 ```mermaid
 flowchart LR
-  S[Scheduler<br/>Quartz.NET] --> Q[Poll queue<br/>RabbitMQ]
-  Q --> W[Poll workers<br/>fetch, parse, compare]
-  W --> F[(Vendor feeds<br/>Statuspage JSON,<br/>RSS, Atom)]
-  W --> C{Changed?}
+  P[Publisher<br/>Quartz.NET scheduler] -- PollVendor --> Q[RabbitMQ<br/>via MassTransit]
+  Q --> S[Subscriber<br/>poll handler:<br/>fetch, parse, compare]
+  S --> F[(Vendor feeds<br/>Statuspage JSON,<br/>RSS, Atom)]
+  S --> C{Changed?}
   C -- no --> X[Stop]
   C -- yes --> DB[(PostgreSQL)]
   C -- yes --> E[VendorStatusChanged<br/>event]
-  E --> H[SignalR hub] --> D[React dashboards]
-  E --> AI[Incident summary<br/>Amazon Nova Lite]
-  E --> A[Alert worker] --> I[Email, Slack, Discord]
+  E --> H[Api: SignalR hub] --> D[React dashboards]
+  E --> AI[Subscriber: summary handler<br/>Amazon Nova Lite]
+  E --> A[Subscriber: alert handler] --> I[Email, Slack, Discord]
   AI --> A
 ```
 
-The scheduler queues one poll per vendor per interval, however many people follow that vendor. A worker fetches the feed with a conditional request (ETag or If-Modified-Since), normalizes the response, hashes it and compares the hash with the last one stored in Redis. Most polls end right there. Only a real change is written to PostgreSQL and published as an event, which then fans out to dashboards, alerts and the summarizer.
+The system is split into publishers and subscribers that only talk through RabbitMQ. The Publisher queues one `PollVendor` message per vendor per interval, however many people follow that vendor. The Subscriber's poll handler fetches the feed with a conditional request (ETag or If-Modified-Since), normalizes the response, hashes it and compares the hash with the last one stored in Redis. Most polls end right there. Only a real change is written to PostgreSQL and published as a `VendorStatusChanged` event, which then fans out to dashboards, alerts and the summarizer.
 
 The result is that load and cost grow with the number of vendors in the catalog, not the number of users.
+
+## Project structure
+
+| Project | Role |
+| --- | --- |
+| `StatusTide.Api` | ASP.NET Core Web API (controllers) and the SignalR hub. Subscribes to status events to push live updates. |
+| `StatusTide.Publisher` | Scheduled jobs that publish work to the queue. Runs as a single replica so polls are never queued twice. |
+| `StatusTide.Subscriber` | Message consumers, grouped by feature: polling, checks, alerts, summaries. Scales out to as many replicas as needed. |
+| `StatusTide.Contracts` | The messages (commands and events) shared by every project. Plain records with no dependencies. |
+| `StatusTide.Common` | Shared plumbing: logging and MassTransit setup, used by every executable. |
+| `WebUI` | React and TypeScript frontend (Vite). |
+| `tests/` | Unit tests and integration tests. |
+
+Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages 5 times with exponential backoff (1 to 30 seconds); anything that still fails lands in an `_error` queue to be inspected and replayed, so no message is silently lost.
 
 ## Design decisions
 
 **One poll per vendor, not per user.** A thousand people following GitHub still means one request to GitHub per minute. This is the core of the architecture and the reason for the queue and the fingerprinting step above.
+
+**Publishers and subscribers instead of one big worker.** Scheduling and processing run as separate apps that only share message contracts. The Publisher runs as exactly one copy, which is what keeps polls from being queued twice, while the Subscriber can scale out freely. Writes come from the pipeline and reads are served from a Redis cache that the same events keep fresh, so busy dashboards never slow down the write path.
 
 **Read published feeds, never scrape.** StatusTide only reads formats vendors publish for programs: Atlassian Statuspage JSON, Slack's status API, Google Cloud's Atom feed and plain RSS or Atom. There is no HTML scraping and no LLM reading arbitrary pages. The trade-off is that some vendors can't be supported, and that's accepted. Before a vendor joins the catalog, its format, terms of service, API terms and robots.txt are reviewed and the decision is recorded in the database, and reviewed again every six months.
 
@@ -63,9 +79,9 @@ The result is that load and cost grow with the number of vendors in the catalog,
 | Layer | Choice |
 | --- | --- |
 | Frontend | React with TypeScript (Vite), served from S3 through CloudFront |
-| API | ASP.NET Core Web API, SignalR, ASP.NET Core Identity with JWT |
-| Background work | .NET worker services, Quartz.NET scheduler |
-| Messaging | RabbitMQ |
+| API | ASP.NET Core Web API (controllers), SignalR, ASP.NET Core Identity with JWT |
+| Background work | .NET worker services: a Publisher (Quartz.NET scheduler) and a Subscriber (message consumers) |
+| Messaging | RabbitMQ with MassTransit 8 (retries, error queues) |
 | Data | PostgreSQL with EF Core migrations, Redis for locks, fingerprints, caching and rate limits |
 | AI | Amazon Nova Lite on Bedrock |
 | Alerts | Amazon SES, Slack and Discord webhooks |
@@ -88,12 +104,36 @@ Each milestone ends with something that runs and can be demonstrated.
 
 ## Running it locally
 
-Setup instructions arrive with milestone 1. The plan:
+Requirements: .NET 10 SDK, Node.js 24 and Docker.
 
-- Requirements: .NET 10 SDK, Node.js 24 and Docker.
+```bash
+dotnet build                          # build the .NET solution
+dotnet test                           # unit and integration tests
+dotnet run --project StatusTide.Api   # API on http://localhost:5080 (health check at /health)
+
+cd WebUI
+npm ci
+npm run dev                           # frontend on http://localhost:5173
+```
+
+The Publisher and Subscriber need RabbitMQ. A Docker Compose file for PostgreSQL, Redis, RabbitMQ, MinIO and Mailpit is coming with [#1](https://github.com/hossem7/StatusTide/issues/1). Until then:
+
+```bash
+docker run -d --name statustide-rabbitmq -p 5672:5672 -p 15672:15672 \
+  -e RABBITMQ_DEFAULT_USER=statustide -e RABBITMQ_DEFAULT_PASS=statustide-dev \
+  rabbitmq:4-management-alpine
+```
+
+How the local setup works:
+
+
 - Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: MinIO for S3, Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
 - No real vendor is polled during development. Readers are built and tested against recorded sample responses, plus the demo vendor.
 
 ## About the data
 
 Statuses shown in StatusTide come from each vendor's public status page or feed, with a link back to the source. StatusTide is an independent project and isn't affiliated with or endorsed by any of the vendors it lists.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and commit style, and [CLAUDE.md](CLAUDE.md) for how the code is organized.

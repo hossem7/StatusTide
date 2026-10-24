@@ -1,0 +1,55 @@
+# StatusTide: agent instructions
+
+Context for AI coding agents (and people) working in this repo. Read this before changing code. The product, architecture and design decisions are in [README.md](README.md); the workflow is in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Commands
+
+```bash
+dotnet build                          # whole solution; warnings are errors
+dotnet test                           # unit + integration tests (Microsoft Testing Platform)
+dotnet run --project StatusTide.Api   # http://localhost:5080, health at /health
+
+cd WebUI && npm ci                    # frontend dependencies
+npm run lint                          # oxlint
+npm run build                         # type check + production build
+npm run dev                           # http://localhost:5173, proxies /api and /hubs to the API
+```
+
+CI (`.github/workflows/ci.yml`) runs the same build, test, lint and build steps, then builds a Docker image for each app. Run them locally before opening a PR.
+
+## Architecture
+
+Publishers and subscribers that only talk through RabbitMQ, using MassTransit.
+
+| Project | Holds | May reference |
+| --- | --- | --- |
+| `StatusTide.Contracts` | Message records: commands (`PollVendor`) and events (`VendorStatusChanged`) | Nothing |
+| `StatusTide.Common` | Shared plumbing: `AddStatusTideLogging`, `AddStatusTideMessaging`, retry policy | Contracts |
+| `StatusTide.Api` | Controllers, SignalR hub, query handlers for screens | Contracts, Common |
+| `StatusTide.Publisher` | Quartz.NET jobs that publish commands. Always one replica. | Contracts, Common |
+| `StatusTide.Subscriber` | `IConsumer<T>` implementations, grouped by feature | Contracts, Common |
+| `WebUI` | React + TypeScript (Vite) | Calls the API only |
+
+Rules:
+
+- **Executables never reference each other.** Api, Publisher and Subscriber share only Contracts and Common. They communicate through messages, never direct calls.
+- **Contracts are plain records with no dependencies** (no MassTransit, no EF Core). Commands are named as instructions (`PollVendor`), events in the past tense (`VendorStatusChanged`). Never change a message's meaning in place; add a new one instead.
+- **Group code by feature, not by type**: `StatusTide.Subscriber/Features/Polling/PollVendorConsumer.cs`, `StatusTide.Api/Features/Follows/FollowsController.cs`. Keep a feature's consumer, logic and data access together.
+- **Separate writes from reads (light CQRS).** Commands enforce rules and change state. Queries change nothing, use `AsNoTracking`, and return DTOs shaped for the screen. One PostgreSQL database; no separate read store or event sourcing.
+- **Consumers must be idempotent.** MassTransit retries a failing message 5 times (exponential backoff, 1 to 30 s, see `MessagingDefaults`), then moves it to the `_error` queue. A message can arrive more than once.
+- **Interfaces only where an implementation really swaps**: `IStatusReader` (one per feed format), `IIncidentSummarizer` (Bedrock or fake), `IAlertSender` (SES, Mailpit, webhooks). Do not add an interface for a class with one implementation.
+- **API endpoints are controllers** (`[ApiController]`), not minimal APIs.
+- **Frontend**: feature folders under `WebUI/src/features/`, small components, server data through one typed API client. Never use `dangerouslySetInnerHTML`.
+
+## Hard rules
+
+- **MassTransit stays on 8.x.** Version 9 and later need a commercial license. Do not accept upgrade PRs that move it to 9.
+- **No real vendor polling in development or tests.** Use recorded sample responses and the demo vendor (Acme Cloud). Only vendors approved through the verification process in the plan go live.
+- **Store and show facts only**: statuses, component names, incident titles, timestamps and source links. Never store or display a vendor's written update text. AI summaries use only those facts plus our own check data.
+- **Treat every fetched URL and every incident title as untrusted.** URLs go through the SSRF guard (http/https, ports 80 and 443, no private, loopback or link-local addresses, every redirect re-checked). Incident titles are wrapped as data in AI prompts.
+- **No secrets in the repo and no AWS access keys anywhere.** Production uses the EC2 IAM role. Local values live in `appsettings.Development.json` (fake development credentials only) or `.env`, never committed.
+- **Commits and PRs are authored by the repo owner only.** No co-author trailers, no "Generated with" lines in commits or PR descriptions.
+
+## Writing style for docs, comments and PRs
+
+Plain, readable language. Short sentences. No em dashes. Explain why, not just what.
