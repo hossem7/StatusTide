@@ -1,5 +1,7 @@
 # StatusTide
 
+[![CI](https://github.com/hossem7/StatusTide/actions/workflows/ci.yml/badge.svg)](https://github.com/hossem7/StatusTide/actions/workflows/ci.yml)
+
 One dashboard for the status of every service your stack depends on, with independent checks running alongside each vendor's official status page.
 
 > **Project status: in development.** The plan, screen designs and backlog are done, and code starts with [milestone 1](https://github.com/hossem7/StatusTide/milestone/1). Nothing is deployed yet. Progress is tracked in [milestones](https://github.com/hossem7/StatusTide/milestones) and [issues](https://github.com/hossem7/StatusTide/issues).
