@@ -165,7 +165,7 @@ Remove the cluster with `k3d cluster delete statustide`. The web app is not in t
 ### How the local setup works
 
 - Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: SeaweedFS for S3 (MinIO no longer publishes Docker images), Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
-- No real vendor is polled during development. Readers are built and tested against recorded sample responses, plus the demo vendor.
+- No real vendor is polled during development. Readers are built and tested against hand-written sample responses, plus the demo vendor.
 
 ## About the data
 

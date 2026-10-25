@@ -1,0 +1,37 @@
+{
+  "page": {
+    "id": "nmb0000page1",
+    "name": "Nimbus Mail",
+    "url": "https://status.nimbusmail.example",
+    "time_zone": "Etc/UTC",
+    "updated_at": "2026-10-25T09:00:00.000Z"
+  },
+  "components": [
+    {
+      "id": "nmbgroupapi1",
+      "name": "API",
+      "status": "operational",
+      "created_at": "2025-01-10T12:00:00.000Z",
+      "updated_at": "2026-10-25T09:00:00.000Z",
+      "position": 1,
+      "description": null,
+      "showcase": false,
+      "start_date": null,
+      "group_id": null,
+      "page_id": "nmb0000page1",
+      "group": true,
+      "only_show_if_degraded": false,
+      "components": ["nmbcompsend1", "nmbcompinbx1"]
+    },
+    {
+      "id": "nmbcompsend1",
+      "name": "Send API",
+      "status": "operational",
+      "created_at": "2025-01-10T12:00:00.000Z",
+      "updated_at": "2026-10-25T09:00:00.000Z",
+      "position": 2,
+      "description": "Sending email through the REST API",
+      "showcase": false,
+      "start_date": "2025-01-10",
+      "group_id": "nmbgroupapi1",
+      "page_id": "nmb0000page1

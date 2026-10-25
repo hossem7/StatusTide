@@ -39,7 +39,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 Examples:
 
 ```
-feat: add Statuspage reader with recorded fixtures
+feat: add Statuspage reader with sample fixtures
 fix: honor Retry-After on 429 responses
 ```
 
@@ -53,7 +53,7 @@ dotnet test
 cd WebUI && npm run lint && npm run build
 ```
 
-- New behavior has tests. Readers are tested against recorded vendor responses, including malformed and oversized ones.
+- New behavior has tests. Readers are tested against the sample responses in `tests/fixtures`, including malformed and oversized ones.
 - New message types go in `StatusTide.Contracts`, and their consumers are idempotent.
 - No secrets, real credentials or AWS keys.
 - UI changes include a screenshot in the PR.

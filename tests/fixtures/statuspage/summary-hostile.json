@@ -1,0 +1,112 @@
+{
+  "page": {
+    "id": "brk0000page1",
+    "name": "Breakwater DNS",
+    "url": "javascript:alert(1)",
+    "updated_at": "2026-10-25T11:00:00.000Z"
+  },
+  "components": [
+    {
+      "id": "brkcompdns01",
+      "name": "  Authoritative DNS  ",
+      "status": "on_fire",
+      "group": false
+    },
+    {
+      "id": "brkcompdns01",
+      "name": "Duplicate of the first component",
+      "status": "operational",
+      "group": false
+    },
+    {
+      "id": "brkcompnoname",
+      "name": "",
+      "status": "operational",
+      "group": false
+    },
+    {
+      "name": "Component without an id",
+      "status": "operational",
+      "group": false
+    },
+    {
+      "id": "brkcompcdn01",
+      "name": "CDN",
+      "status": null,
+      "group": false
+    },
+    {
+      "id": "brkcomprsv01",
+      "name": "Resolver",
+      "status": "operational",
+      "group": false,
+      "unexpected_field": {
+        "nested": [
+          1,
+          2,
+          3
+        ]
+      }
+    }
+  ],
+  "incidents": [
+    {
+      "id": "brkinc000001",
+      "name": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "status": "some_new_status",
+      "created_at": "2026-10-25T10:50:00.000Z",
+      "started_at": null,
+      "resolved_at": null,
+      "shortlink": "javascript:alert(document.cookie)",
+      "incident_updates": [
+        {
+          "status": "investigating",
+          "body": "PLACEHOLDER UPDATE TEXT 3. This must never appear in parsed results.",
+          "created_at": "2026-10-25T10:50:00.000Z",
+          "display_at": null,
+          "affected_components": [
+            {
+              "code": "brkcompcdn01"
+            },
+            {
+              "code": "not-a-component"
+            }
+          ]
+        },
+        {
+          "status": "investigating",
+          "body": "Update with no time",
+          "created_at": null,
+          "display_at": null
+        }
+      ],
+      "components": [
+        {
+          "id": "brkcompdns01"
+        }
+      ]
+    },
+    {
+      "name": "Incident without an id",
+      "status": "investigating",
+      "created_at": "2026-10-25T10:55:00.000Z"
+    },
+    {
+      "id": "brkinc000003",
+      "name": "Incident without any time",
+      "status": "investigating"
+    },
+    {
+      "id": "brkinc000004",
+      "name": "   ",
+      "status": "postmortem",
+      "created_at": "2026-10-24T08:00:00.000Z",
+      "resolved_at": "2026-10-24T09:30:00.000Z",
+      "shortlink": "https://stspg.example/brk4"
+    }
+  ],
+  "status": {
+    "indicator": "critical",
+    "description": "Major System Outage"
+  }
+}

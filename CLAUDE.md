@@ -56,7 +56,7 @@ Rules:
 ## Hard rules
 
 - **MassTransit stays on 8.x.** Version 9 and later need a commercial license. Do not accept upgrade PRs that move it to 9.
-- **No real vendor polling in development or tests.** Use recorded sample responses and the demo vendor (Acme Cloud). Only vendors approved through the verification process in the plan go live.
+- **No real vendor polling in development or tests.** Use the sample responses in `tests/fixtures` and the demo vendor (Acme Cloud). Fixtures are written by hand in the documented format, never copied from a real vendor, since real responses carry update text we must not store. Only vendors approved through the verification process in the plan go live.
 - **Store and show facts only**: statuses, component names, incident titles, timestamps and source links. Never store or display a vendor's written update text. AI summaries use only those facts plus our own check data.
 - **Treat every fetched URL and every incident title as untrusted.** URLs go through the SSRF guard (http/https, ports 80 and 443, no private, loopback or link-local addresses, every redirect re-checked). Incident titles are wrapped as data in AI prompts.
 - **No secrets in the repo and no AWS access keys anywhere.** Production uses the EC2 IAM role. Local values live in `appsettings.Development.json` (fake development credentials only) or `.env`, never committed.
