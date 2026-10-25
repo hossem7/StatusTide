@@ -88,7 +88,9 @@ services:
       context: .
       dockerfile: StatusTide.Api/Dockerfile
     image: statustide-api:local
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      Database__MigrateOnStartup: "true"
     ports:
       - 127.0.0.1:5080:8080
     depends_on: *app-depends-on

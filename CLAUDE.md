@@ -6,7 +6,9 @@ Context for AI coding agents (and people) working in this repo. Read this before
 
 ```bash
 dotnet build                          # whole solution; warnings are errors
-dotnet test                           # unit + integration tests (Microsoft Testing Platform)
+dotnet test                           # unit + integration tests (Microsoft Testing Platform); Docker must be running
+dotnet tool restore                   # once; installs dotnet-ef from dotnet-tools.json
+dotnet ef migrations add <Name> --project StatusTide.Data   # after any entity change
 dotnet run --project StatusTide.Api   # http://localhost:5080, health at /health
 
 cd WebUI && npm ci                    # frontend dependencies
@@ -32,18 +34,20 @@ Publishers and subscribers that only talk through RabbitMQ, using MassTransit.
 | --- | --- | --- |
 | `StatusTide.Contracts` | Message records: commands (`PollVendor`) and events (`VendorStatusChanged`) | Nothing |
 | `StatusTide.Common` | Shared plumbing: `AddStatusTideLogging`, `AddStatusTideMessaging`, retry policy | Contracts |
-| `StatusTide.Api` | Controllers, SignalR hub, query handlers for screens | Contracts, Common |
-| `StatusTide.Publisher` | Quartz.NET jobs that publish commands. Always one replica. | Contracts, Common |
-| `StatusTide.Subscriber` | `IConsumer<T>` implementations, grouped by feature | Contracts, Common |
+| `StatusTide.Data` | `StatusTideDbContext`, entities and their configurations (one folder per feature), migrations, the Acme Cloud seed | Nothing |
+| `StatusTide.Api` | Controllers, SignalR hub, query handlers for screens | Contracts, Common, Data |
+| `StatusTide.Publisher` | Quartz.NET jobs that publish commands. Always one replica. | Contracts, Common, Data |
+| `StatusTide.Subscriber` | `IConsumer<T>` implementations, grouped by feature | Contracts, Common, Data |
 | `WebUI` | React + TypeScript (Vite) | Calls the API only |
 
 Rules:
 
-- **Executables never reference each other.** Api, Publisher and Subscriber share only Contracts and Common. They communicate through messages, never direct calls.
+- **Executables never reference each other.** Api, Publisher and Subscriber share only Contracts, Common and Data. They communicate through messages, never direct calls.
 - **Contracts are plain records with no dependencies** (no MassTransit, no EF Core). Commands are named as instructions (`PollVendor`), events in the past tense (`VendorStatusChanged`). Never change a message's meaning in place; add a new one instead.
 - **Never rename or move a message type.** MassTransit identifies a message by its full type name, including the namespace, so renaming `PollVendor` or moving it to another namespace silently stops delivery to running consumers. Add a new message type instead, migrate publishers and consumers to it, then remove the old one.
 - **Group code by feature, not by type**: `StatusTide.Subscriber/Features/Polling/PollVendorConsumer.cs`, `StatusTide.Api/Features/Follows/FollowsController.cs`. Keep a feature's consumer, logic and data access together.
 - **Separate writes from reads (light CQRS).** Commands enforce rules and change state. Queries change nothing, use `AsNoTracking`, and return DTOs shaped for the screen. One PostgreSQL database; no separate read store or event sourcing.
+- **Schema changes go through migrations.** Snake_case names come from the naming convention, and enums are stored as text. Only the API applies migrations on startup (`Database:MigrateOnStartup`, on in development and the local stacks). Seed data uses fixed ids and dates; a test fails if the model and migrations drift apart.
 - **Consumers must be idempotent.** MassTransit retries a failing message 5 times (exponential backoff, 1 to 30 s, see `MessagingDefaults`), then moves it to the `_error` queue. A message can arrive more than once.
 - **Interfaces only where an implementation really swaps**: `IStatusReader` (one per feed format), `IIncidentSummarizer` (Bedrock or fake), `IAlertSender` (SES, Mailpit, webhooks). Do not add an interface for a class with one implementation.
 - **API endpoints are controllers** (`[ApiController]`), not minimal APIs.

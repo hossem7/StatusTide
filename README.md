@@ -49,8 +49,9 @@ The result is that load and cost grow with the number of vendors in the catalog,
 | `StatusTide.Subscriber` | Message consumers, grouped by feature: polling, checks, alerts, summaries. Scales out to as many replicas as needed. |
 | `StatusTide.Contracts` | The messages (commands and events) shared by every project. Plain records with no dependencies. |
 | `StatusTide.Common` | Shared plumbing: logging and MassTransit setup, used by every executable. |
+| `StatusTide.Data` | The PostgreSQL schema: EF Core entities, migrations and the demo vendor seed. |
 | `WebUI` | React and TypeScript frontend (Vite). |
-| `tests/` | Unit tests and integration tests. |
+| `tests/` | Unit tests, and integration tests against a real PostgreSQL in Testcontainers (needs Docker). |
 
 Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages 5 times with exponential backoff (1 to 30 seconds); anything that still fails lands in an `_error` queue to be inspected and replayed, so no message is silently lost.
 

@@ -13,3 +13,14 @@ images:
   - name: ghcr.io/hossem7/statustide-subscriber
     newName: statustide-subscriber
     newTag: local
+# The local cluster migrates on API startup. Production will migrate as a deploy step instead.
+patches:
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Database__MigrateOnStartup
+          value: "true"
