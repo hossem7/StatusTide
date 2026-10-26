@@ -6,11 +6,13 @@ WORKDIR /src
 COPY global.json Directory.Build.props Directory.Packages.props .editorconfig ./
 COPY StatusTide.Contracts/StatusTide.Contracts.csproj StatusTide.Contracts/
 COPY StatusTide.Common/StatusTide.Common.csproj StatusTide.Common/
+COPY StatusTide.Data/StatusTide.Data.csproj StatusTide.Data/
 COPY StatusTide.Publisher/StatusTide.Publisher.csproj StatusTide.Publisher/
 RUN dotnet restore StatusTide.Publisher/StatusTide.Publisher.csproj
 
 COPY StatusTide.Contracts/ StatusTide.Contracts/
 COPY StatusTide.Common/ StatusTide.Common/
+COPY StatusTide.Data/ StatusTide.Data/
 COPY StatusTide.Publisher/ StatusTide.Publisher/
 RUN dotnet publish StatusTide.Publisher/StatusTide.Publisher.csproj -c Release --no-restore -o /app
 
