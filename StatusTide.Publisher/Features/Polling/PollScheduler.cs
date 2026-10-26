@@ -36,6 +36,17 @@ public class PollScheduler(
 
         foreach (var vendor in due)
         {
+            var interval = TimeSpan.FromSeconds(vendor.PollIntervalSeconds);
+            vendor.NextPollAt = now + (interval < MinimumInterval ? MinimumInterval : interval);
+        }
+
+        // Saved before publishing, so a poll worker that backs off a failing vendor sets its
+        // next poll after ours and is never overwritten. If publishing fails part way, the
+        // rest wait one interval.
+        await db.SaveChangesAsync(cancellationToken);
+
+        foreach (var vendor in due)
+        {
             // A new id per poll, so one poll can be followed through every log line.
             var correlationId = NewId.NextGuid();
             await publish.Publish(
@@ -43,18 +54,12 @@ public class PollScheduler(
                 context => context.CorrelationId = correlationId,
                 cancellationToken);
 
-            var interval = TimeSpan.FromSeconds(vendor.PollIntervalSeconds);
-            vendor.NextPollAt = now + (interval < MinimumInterval ? MinimumInterval : interval);
-
             logger.LogInformation(
                 "Queued poll for vendor {VendorId} with CorrelationId {CorrelationId}",
                 vendor.Id,
                 correlationId);
         }
 
-        // Saved after publishing. If saving fails, the same vendors are queued again on the
-        // next tick, which is safe because poll consumers are idempotent.
-        await db.SaveChangesAsync(cancellationToken);
         return due.Count;
     }
 }

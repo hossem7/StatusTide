@@ -31,4 +31,7 @@ public class StatusReadException(StatusReadFailure failure, string message, Exce
 
     /// <summary>Set for <see cref="StatusReadFailure.HttpError"/>, so 429 and 503 can be backed off.</summary>
     public HttpStatusCode? StatusCode { get; init; }
+
+    /// <summary>How long the feed asked us to wait (its Retry-After header), when it said.</summary>
+    public TimeSpan? RetryAfter { get; init; }
 }

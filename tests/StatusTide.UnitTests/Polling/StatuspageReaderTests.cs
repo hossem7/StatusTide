@@ -14,8 +14,11 @@ public class StatuspageReaderTests
 {
     static StatuspageReader Reader(FakeFeed feed) => new(new FeedClient(new HttpClient(feed), new FakeTimeProvider()));
 
-    static Task<StatusSnapshot> ReadFixtureAsync(string name) =>
-        Reader(FakeFeed.ReturningFixture($"statuspage/{name}")).ReadAsync(FakeFeed.Url, TestContext.Current.CancellationToken);
+    static async Task<StatusSnapshot> ReadFixtureAsync(string name)
+    {
+        var result = await Reader(FakeFeed.ReturningFixture($"statuspage/{name}")).ReadAsync(FakeFeed.Url, null, TestContext.Current.CancellationToken);
+        return result.Snapshot!;
+    }
 
     [Fact]
     public async Task Maps_components_and_skips_groups()
@@ -121,7 +124,7 @@ public class StatuspageReaderTests
         var feed = FakeFeed.Returning(Encoding.UTF8.GetBytes(json));
 
         var error = await Assert.ThrowsAsync<StatusReadException>(
-            () => Reader(feed).ReadAsync(FakeFeed.Url, TestContext.Current.CancellationToken));
+            () => Reader(feed).ReadAsync(FakeFeed.Url, null, TestContext.Current.CancellationToken));
 
         Assert.Equal(StatusReadFailure.Malformed, error.Failure);
     }
@@ -132,7 +135,7 @@ public class StatuspageReaderTests
         var feed = FakeFeed.Returning(new byte[FeedClient.MaxResponseBytes + 1]);
 
         var error = await Assert.ThrowsAsync<StatusReadException>(
-            () => Reader(feed).ReadAsync(FakeFeed.Url, TestContext.Current.CancellationToken));
+            () => Reader(feed).ReadAsync(FakeFeed.Url, null, TestContext.Current.CancellationToken));
 
         Assert.Equal(StatusReadFailure.TooLarge, error.Failure);
     }
