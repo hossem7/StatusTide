@@ -7,11 +7,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\StatusTide.Api\StatusTide.Api.csproj" />
+    <!-- Every executable has a global Program class. The alias keeps the Publisher's out of
+         the way, so Program still means the API in WebApplicationFactory<Program>. -->
+    <ProjectReference Include="..\..\StatusTide.Publisher\StatusTide.Publisher.csproj" Aliases="Publisher" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
+    <PackageReference Include="Testcontainers.Redis" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
