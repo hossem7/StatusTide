@@ -9,7 +9,7 @@ public static class MessagingExtensions
     /// <summary>
     /// Shared MassTransit setup over RabbitMQ, using the "RabbitMq" connection string
     /// (amqp://user:password@host:5672/). Queue names are kebab-case and every consumer
-    /// gets the retry policy in <see cref="MessagingDefaults"/>.
+    /// gets the retry policy in <see cref="MessagingDefaults"/> and the CorrelationId in its logs.
     /// </summary>
     public static IServiceCollection AddStatusTideMessaging(
         this IServiceCollection services,
@@ -30,6 +30,7 @@ public static class MessagingExtensions
             bus.UsingRabbitMq((context, rabbit) =>
             {
                 rabbit.Host(new Uri(connectionString), _ => { });
+                rabbit.UseConsumeFilter(typeof(CorrelationLogFilter<>), context);
                 rabbit.UseMessageRetry(MessagingDefaults.ConfigureRetry);
                 rabbit.ConfigureEndpoints(context);
             });

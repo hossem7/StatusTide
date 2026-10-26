@@ -35,6 +35,14 @@ public sealed class PostgresFixture : IAsyncLifetime
     /// <summary>A context on the shared, already migrated "statustide" database.</summary>
     public StatusTideDbContext CreateDbContext() => CreateDbContext("statustide");
 
+    /// <summary>A context on a database of its own, migrated and seeded on first use.</summary>
+    public async Task<StatusTideDbContext> CreateMigratedDbContextAsync(string database)
+    {
+        var db = CreateDbContext(database);
+        await db.Database.MigrateAsync();
+        return db;
+    }
+
     private StatusTideDbContext CreateDbContext(string database)
     {
         var options = new DbContextOptionsBuilder<StatusTideDbContext>()
