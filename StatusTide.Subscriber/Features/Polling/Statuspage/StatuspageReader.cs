@@ -25,9 +25,13 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
 
     public FeedFormat Format => FeedFormat.Statuspage;
 
-    public async Task<StatusSnapshot> ReadAsync(Uri feedUrl, CancellationToken cancellationToken)
+    public async Task<StatusReadResult> ReadAsync(Uri feedUrl, FeedValidators? validators, CancellationToken cancellationToken)
     {
-        var body = await feeds.GetAsync(feedUrl, cancellationToken);
+        var response = await feeds.GetAsync(feedUrl, validators, cancellationToken);
+        if (response.Body is not { } body)
+        {
+            return new StatusReadResult(null, response.Validators);
+        }
 
         StatuspageSummary? summary;
         try
@@ -51,7 +55,7 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
             .OfType<IncidentSnapshot>()
             .ToList();
 
-        return new StatusSnapshot(components, incidents);
+        return new StatusReadResult(new StatusSnapshot(components, incidents), response.Validators);
     }
 
     private static List<ComponentSnapshot> MapComponents(List<StatuspageComponent> components)

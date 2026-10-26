@@ -7,9 +7,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\StatusTide.Api\StatusTide.Api.csproj" />
-    <!-- Every executable has a global Program class. The alias keeps the Publisher's out of
+    <!-- Every executable has a global Program class. The aliases keep the workers' out of
          the way, so Program still means the API in WebApplicationFactory<Program>. -->
     <ProjectReference Include="..\..\StatusTide.Publisher\StatusTide.Publisher.csproj" Aliases="Publisher" />
+    <ProjectReference Include="..\..\StatusTide.Subscriber\StatusTide.Subscriber.csproj" Aliases="Subscriber" />
   </ItemGroup>
 
   <ItemGroup>
