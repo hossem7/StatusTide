@@ -1,9 +1,15 @@
+import Header from './components/Header'
+import Dashboard from './features/dashboard/Dashboard'
+import { sampleData } from './features/dashboard/sampleData'
+
 function App() {
   return (
-    <main>
-      <h1>StatusTide</h1>
-      <p>One dashboard for the status of every service your stack depends on.</p>
-    </main>
+    <>
+      <Header />
+      <main>
+        <Dashboard vendors={sampleData.vendors} activity={sampleData.activity} />
+      </main>
+    </>
   )
 }
 

@@ -1,0 +1,64 @@
+.vendor-card {
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.vendor-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vendor-card__initials {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.vendor-card__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.vendor-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.vendor-card__source {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.vendor-card__source:hover {
+  text-decoration: underline;
+}
+
+.vendor-card__components {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vendor-card__component {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.vendor-card__component + .vendor-card__component {
+  border-top: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+}

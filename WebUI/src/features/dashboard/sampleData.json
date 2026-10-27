@@ -1,0 +1,100 @@
+{
+  "vendors": [
+    {
+      "id": "acme-cloud",
+      "name": "Acme Cloud",
+      "statusPageUrl": null,
+      "components": [
+        { "id": "acme-api", "name": "API", "status": "Operational", "followed": true },
+        { "id": "acme-dashboard", "name": "Dashboard", "status": "DegradedPerformance", "followed": true },
+        { "id": "acme-cdn", "name": "CDN", "status": "PartialOutage", "followed": true },
+        { "id": "acme-db", "name": "Database", "status": "Operational", "followed": false }
+      ]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "statusPageUrl": "https://www.githubstatus.com",
+      "components": [
+        { "id": "gh-actions", "name": "Actions", "status": "Operational", "followed": true },
+        { "id": "gh-api", "name": "API Requests", "status": "Operational", "followed": false },
+        { "id": "gh-pages", "name": "Pages", "status": "Operational", "followed": false }
+      ]
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "statusPageUrl": "https://status.slack.com",
+      "components": [
+        { "id": "slack-messaging", "name": "Messaging", "status": "DegradedPerformance", "followed": true },
+        { "id": "slack-calls", "name": "Calls", "status": "Operational", "followed": true },
+        { "id": "slack-files", "name": "File uploads", "status": "Operational", "followed": false }
+      ]
+    },
+    {
+      "id": "aws",
+      "name": "Amazon Web Services",
+      "statusPageUrl": "https://health.aws.amazon.com",
+      "components": [
+        { "id": "aws-ec2", "name": "EC2", "status": "MajorOutage", "followed": true },
+        { "id": "aws-s3", "name": "S3", "status": "Operational", "followed": true },
+        { "id": "aws-rds", "name": "RDS", "status": "PartialOutage", "followed": false }
+      ]
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "statusPageUrl": "https://status.stripe.com",
+      "components": [
+        { "id": "stripe-api", "name": "API", "status": "UnderMaintenance", "followed": true },
+        { "id": "stripe-dashboard", "name": "Dashboard", "status": "Operational", "followed": false }
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "statusPageUrl": "https://www.cloudflarestatus.com",
+      "components": [
+        { "id": "cf-cdn", "name": "CDN", "status": "Unknown", "followed": true },
+        { "id": "cf-dns", "name": "DNS", "status": "Unknown", "followed": true }
+      ]
+    }
+  ],
+  "activity": [
+    {
+      "id": "act-1",
+      "vendorName": "Amazon Web Services",
+      "componentName": "EC2",
+      "status": "MajorOutage",
+      "at": "2026-10-26T14:32:00Z"
+    },
+    {
+      "id": "act-2",
+      "vendorName": "Acme Cloud",
+      "componentName": "CDN",
+      "status": "PartialOutage",
+      "at": "2026-10-26T14:18:00Z"
+    },
+    {
+      "id": "act-3",
+      "vendorName": "Slack",
+      "componentName": "Messaging",
+      "status": "DegradedPerformance",
+      "at": "2026-10-26T13:50:00Z"
+    },
+    {
+      "id": "act-4",
+      "vendorName": "Stripe",
+      "componentName": "API",
+      "status": "UnderMaintenance",
+      "at": "2026-10-26T12:05:00Z"
+    },
+    {
+      "id": "act-5",
+      "vendorName": "GitHub",
+      "componentName": "Actions",
+      "status": "Operational",
+      "at": "2026-10-26T09:41:00Z"
+    }
+  ]
+}

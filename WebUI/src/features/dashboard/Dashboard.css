@@ -1,0 +1,22 @@
+.dashboard__heading {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin: 0 0 1rem;
+}
+
+/* auto-fill + minmax gives multiple columns on wide screens and a single
+   column on phones, with no media queries. */
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.dashboard__footnote {
+  margin-top: 2.5rem;
+  font-size: 0.8rem;
+  opacity: 0.55;
+  line-height: 1.5;
+}
