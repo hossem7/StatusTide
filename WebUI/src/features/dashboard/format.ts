@@ -1,0 +1,55 @@
+import type { VendorCard } from '../../api/types'
+
+/** "Checked 40s ago". Takes `now` so it can be tested without faking the clock. */
+export function formatChecked(lastCheckedAt: string | null, now: number): string {
+  const checked = lastCheckedAt === null ? Number.NaN : Date.parse(lastCheckedAt)
+  if (Number.isNaN(checked)) {
+    return 'Not checked yet'
+  }
+
+  // A clock slightly ahead of ours would give a negative age.
+  const seconds = Math.max(0, Math.floor((now - checked) / 1000))
+  if (seconds < 60) return `Checked ${seconds}s ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `Checked ${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `Checked ${hours}h ago`
+  return `Checked ${Math.floor(hours / 24)}d ago`
+}
+
+/** "All 4 components", "API only" or "3 of 10 components". */
+export function componentSummary({ followedComponents, componentCount }: VendorCard): string {
+  const followed = followedComponents.length
+  if (followed >= componentCount) {
+    return componentCount === 1 ? 'All components' : `All ${componentCount} components`
+  }
+  if (followed === 1) {
+    return `${followedComponents[0].name} only`
+  }
+  return `${followed} of ${componentCount} components`
+}
+
+/** Vendor tiles use initials, never logos: "Acme Cloud (demo)" becomes "AC". */
+export function initialsOf(name: string): string {
+  const words = name
+    .replace(/\(.*?\)/g, '')
+    .split(/[\s\-_.]+/)
+    .filter((word) => /\p{L}|\p{N}/u.test(word))
+  const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '?').slice(0, 2)
+  return letters.toUpperCase()
+}
+
+export interface Stats {
+  followed: number
+  operational: number
+  activeIncidents: number
+}
+
+/** Three fixed tiles, so the summary never goes quiet when some vendors are Unknown. */
+export function statsOf(vendors: VendorCard[]): Stats {
+  return {
+    followed: vendors.length,
+    operational: vendors.filter((v) => v.status === 'operational').length,
+    activeIncidents: vendors.reduce((sum, v) => sum + v.activeIncidentCount, 0),
+  }
+}

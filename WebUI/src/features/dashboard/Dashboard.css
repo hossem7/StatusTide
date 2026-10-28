@@ -1,0 +1,206 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard__top h1 {
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.dashboard__message {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+}
+
+.dashboard__message p {
+  margin: 0;
+}
+
+.live-indicator {
+  --live-color: var(--text-secondary);
+  --live-dot: var(--border-strong);
+
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--live-color);
+}
+
+.live-indicator[data-live='live'] {
+  --live-color: var(--status-operational);
+  --live-dot: var(--status-operational-dot);
+}
+
+.live-indicator[data-live='reconnecting'] {
+  --live-color: var(--status-degraded);
+  --live-dot: var(--status-degraded);
+}
+
+.live-indicator__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--live-dot);
+}
+
+.live-indicator__retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-strong);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.stat-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0;
+}
+
+.stat-tile {
+  flex: 1 1 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 18px 20px;
+}
+
+.stat-tile dt {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.stat-tile dd {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.stat-tile[data-tone='operational'] dd {
+  color: var(--status-operational);
+}
+
+.stat-tile[data-tone='outage'] dd {
+  color: var(--status-outage);
+}
+
+.dashboard__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.vendor-card {
+  min-width: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vendor-card[data-status='majorOutage'],
+.vendor-card[data-status='partialOutage'] {
+  border-color: var(--status-outage-border);
+}
+
+.vendor-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vendor-card__initials {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--radius-control);
+  background: var(--bg-muted);
+  color: var(--text-control);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.vendor-card__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.vendor-card__title h2 {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.vendor-card__title p,
+.vendor-card__checked {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.vendor-card__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vendor-card__incident {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-strong);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 16px 16px 32px;
+    gap: 16px;
+  }
+
+  .dashboard__top h1 {
+    font-size: 24px;
+  }
+
+  .stat-tiles {
+    gap: 8px;
+  }
+
+  .stat-tile {
+    flex-basis: 0;
+    padding: 12px 14px;
+  }
+
+  .stat-tile dd {
+    font-size: 24px;
+  }
+}

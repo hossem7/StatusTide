@@ -1,9 +1,12 @@
+import { AppHeader } from './components/AppHeader'
+import { DashboardPage } from './features/dashboard/DashboardPage'
+
 function App() {
   return (
-    <main>
-      <h1>StatusTide</h1>
-      <p>One dashboard for the status of every service your stack depends on.</p>
-    </main>
+    <>
+      <AppHeader />
+      <DashboardPage />
+    </>
   )
 }
 
