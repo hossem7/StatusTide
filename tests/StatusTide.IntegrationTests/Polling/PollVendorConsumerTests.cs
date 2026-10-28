@@ -34,6 +34,7 @@ public sealed class PollVendorConsumerTests(PostgresFixture postgres, RedisFixtu
     private readonly FakeTimeProvider _time = new(Now);
     private readonly FakeReader _reader = new();
     private readonly WriteCounter _writes = new();
+    private readonly PolledAtOnPublish _polledAtOnPublish = new();
     private readonly string _database = $"poll_worker_{Guid.NewGuid():N}";
     private ServiceProvider _services = null!;
     private ITestHarness _harness = null!;
@@ -53,6 +54,7 @@ public sealed class PollVendorConsumerTests(PostgresFixture postgres, RedisFixtu
             .AddSingleton<IStatusReader>(_reader)
             .AddSingleton<VendorPollState>()
             .AddScoped<SnapshotWriter>()
+            .AddPublishObserver(_ => _polledAtOnPublish.Using(redis.Connection))
             .AddMassTransitTestHarness(bus => bus.AddConsumer<PollVendorConsumer, PollVendorConsumerDefinition>())
             .BuildServiceProvider(true);
 
@@ -143,6 +145,25 @@ public sealed class PollVendorConsumerTests(PostgresFixture postgres, RedisFixtu
         _reader.Failure = new StatusReadException(StatusReadFailure.Timeout, "Timed out");
         await PollAsync(vendor);
         Assert.Equal(Now.AddMinutes(1).ToString("O"), await PolledAtAsync(vendor));
+    }
+
+    /// <summary>
+    /// The API reads the poll time when it pushes the changed card, so the time must already be
+    /// in Redis when the change is announced. Otherwise the card says "Checked 1m ago" right
+    /// after a fresh poll.
+    /// </summary>
+    [Fact]
+    public async Task The_poll_time_is_recorded_before_the_change_is_announced()
+    {
+        var vendor = await AddVendorAsync("poll-time-order");
+        _reader.Snapshots[vendor] = Snapshot(ComponentStatus.Operational);
+        await PollAsync(vendor);
+
+        _time.Advance(TimeSpan.FromMinutes(1));
+        _reader.Snapshots[vendor] = Snapshot(ComponentStatus.MajorOutage);
+        await PollAsync(vendor);
+
+        Assert.Equal(Now.AddMinutes(1).ToString("O"), _polledAtOnPublish.Seen[vendor]);
     }
 
     [Fact]
@@ -303,6 +324,38 @@ public sealed class PollVendorConsumerTests(PostgresFixture postgres, RedisFixtu
         $"https://status.example/incidents/{id}",
         ["api"],
         [new(IncidentStatus.Investigating, Now.AddMinutes(-30)), new(status, Now.AddMinutes(-10))]);
+
+    /// <summary>
+    /// Reads the vendor's poll time from Redis inside the Publish call, so it sees exactly what
+    /// the API would read when the event arrives.
+    /// </summary>
+    private sealed class PolledAtOnPublish : IPublishObserver
+    {
+        private StackExchange.Redis.IConnectionMultiplexer _redis = null!;
+
+        public ConcurrentDictionary<Guid, string?> Seen { get; } = new();
+
+        public PolledAtOnPublish Using(StackExchange.Redis.IConnectionMultiplexer redis)
+        {
+            _redis = redis;
+            return this;
+        }
+
+        public async Task PrePublish<T>(PublishContext<T> context)
+            where T : class
+        {
+            if (context.Message is VendorStatusChanged changed)
+            {
+                Seen[changed.VendorId] = await _redis.GetDatabase().StringGetAsync(VendorPollState.PolledKey(changed.VendorId));
+            }
+        }
+
+        public Task PostPublish<T>(PublishContext<T> context)
+            where T : class => Task.CompletedTask;
+
+        public Task PublishFault<T>(PublishContext<T> context, Exception exception)
+            where T : class => Task.CompletedTask;
+    }
 
     /// <summary>Stands in for a Statuspage feed: returns the snapshot set for each vendor's feed URL.</summary>
     private sealed class FakeReader : IStatusReader

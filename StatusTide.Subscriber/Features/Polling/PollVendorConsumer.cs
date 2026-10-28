@@ -79,14 +79,17 @@ public class PollVendorConsumer(
         }
 
         // The fingerprint is stored only after the database, so a failed save is retried in full.
+        // It is stored before the change is announced, because the API reads the poll time from
+        // Redis when it pushes the new card.
         var now = timeProvider.GetUtcNow();
-        if (await writer.SaveAsync(vendor, snapshot, now, cancellationToken))
+        var changed = await writer.SaveAsync(vendor, snapshot, now, cancellationToken);
+        await state.RecordSuccessAsync(vendorId, fingerprint, result.Validators);
+
+        if (changed)
         {
             logger.LogInformation("Status of vendor {VendorId} changed", vendorId);
             await PublishChangedAsync(context, vendorId, now);
         }
-
-        await state.RecordSuccessAsync(vendorId, fingerprint, result.Validators);
     }
 
     private async Task HandleFailureAsync(ConsumeContext<PollVendor> context, Vendor vendor, StatusReadException error)
