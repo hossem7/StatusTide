@@ -6,10 +6,11 @@ namespace StatusTide.Subscriber.Features.Polling;
 
 /// <summary>
 /// What we remember between polls of a vendor, in Redis: the fingerprint of the last
-/// snapshot, the feed's validators for conditional requests, and how many polls in a row
-/// failed. Losing any of it is safe; the next poll just does a little more work.
+/// snapshot, the feed's validators for conditional requests, how many polls in a row
+/// failed, and when the last good poll was. Losing any of it is safe; the next poll just
+/// does a little more work.
 /// </summary>
-public class VendorPollState(IConnectionMultiplexer redis)
+public class VendorPollState(IConnectionMultiplexer redis, TimeProvider timeProvider)
 {
     /// <summary>Long enough to outlive any poll interval, short enough that removed vendors clean up.</summary>
     public static readonly TimeSpan Expiry = TimeSpan.FromDays(1);
@@ -17,6 +18,13 @@ public class VendorPollState(IConnectionMultiplexer redis)
     public static string FingerprintKey(Guid vendorId) => $"fp:vendor:{vendorId}";
     public static string ValidatorsKey(Guid vendorId) => $"etag:vendor:{vendorId}";
     public static string FailuresKey(Guid vendorId) => $"backoff:vendor:{vendorId}";
+
+    /// <summary>
+    /// The last successful poll as an ISO 8601 string, for "Checked 40s ago" on the dashboard.
+    /// Kept in Redis because unchanged polls write nothing to PostgreSQL. The API reads the
+    /// same key, so its name and format must not change on one side only.
+    /// </summary>
+    public static string PolledKey(Guid vendorId) => $"polled:vendor:{vendorId}";
 
     public async Task<FeedValidators?> GetValidatorsAsync(Guid vendorId)
     {
@@ -29,7 +37,7 @@ public class VendorPollState(IConnectionMultiplexer redis)
 
     /// <summary>
     /// Records a successful read: the new validators, the new fingerprint when there is one
-    /// (a 304 keeps the old one), and a reset failure count.
+    /// (a 304 keeps the old one), the poll time, and a reset failure count.
     /// </summary>
     public async Task RecordSuccessAsync(Guid vendorId, string? fingerprint, FeedValidators validators)
     {
@@ -40,6 +48,7 @@ public class VendorPollState(IConnectionMultiplexer redis)
                 ? db.KeyDeleteAsync(ValidatorsKey(vendorId))
                 : db.StringSetAsync(ValidatorsKey(vendorId), JsonSerializer.Serialize(validators), Expiry),
             db.KeyDeleteAsync(FailuresKey(vendorId)),
+            db.StringSetAsync(PolledKey(vendorId), timeProvider.GetUtcNow().ToString("O"), Expiry),
         };
 
         if (fingerprint is not null)

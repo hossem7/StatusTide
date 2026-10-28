@@ -127,6 +127,25 @@ public sealed class PollVendorConsumerTests(PostgresFixture postgres, RedisFixtu
     }
 
     [Fact]
+    public async Task Every_successful_poll_records_its_time_but_a_failed_one_does_not()
+    {
+        var vendor = await AddVendorAsync("poll-time");
+        _reader.Snapshots[vendor] = Snapshot(ComponentStatus.Operational);
+        await PollAsync(vendor);
+        Assert.Equal(Now.ToString("O"), await PolledAtAsync(vendor));
+
+        // Unchanged polls write nothing to PostgreSQL, but still count as a check.
+        _time.Advance(TimeSpan.FromMinutes(1));
+        await PollAsync(vendor);
+        Assert.Equal(Now.AddMinutes(1).ToString("O"), await PolledAtAsync(vendor));
+
+        _time.Advance(TimeSpan.FromMinutes(1));
+        _reader.Failure = new StatusReadException(StatusReadFailure.Timeout, "Timed out");
+        await PollAsync(vendor);
+        Assert.Equal(Now.AddMinutes(1).ToString("O"), await PolledAtAsync(vendor));
+    }
+
+    [Fact]
     public async Task A_status_change_is_saved_and_announced()
     {
         var vendor = await AddVendorAsync("status-change");
@@ -238,6 +257,9 @@ public sealed class PollVendorConsumerTests(PostgresFixture postgres, RedisFixtu
         Assert.Null(consumed.Exception);
         return correlationId;
     }
+
+    private async Task<string?> PolledAtAsync(Guid vendorId) =>
+        await redis.Connection.GetDatabase().StringGetAsync(VendorPollState.PolledKey(vendorId));
 
     private int ChangesAnnounced(Guid vendorId) =>
         _harness.Published.Select<VendorStatusChanged>(Cancel).Count(m => m.Context.Message.VendorId == vendorId);
