@@ -1,4 +1,5 @@
 using Serilog;
+using StatusTide.Api.Features.Dashboard;
 using StatusTide.Api.Features.Demo;
 using StatusTide.Common.Logging;
 using StatusTide.Common.Messaging;
@@ -11,10 +12,16 @@ builder.Services.AddStatusTideLogging(builder.Configuration, builder.Environment
 builder.Services.AddStatusTideData(builder.Configuration);
 builder.Services.AddStatusTideRedis(builder.Configuration);
 
-// Publish only for now. The API gets consumers when the dashboard goes live (issue #7).
-builder.Services.AddStatusTideMessaging(builder.Configuration);
+builder.Services.AddStatusTideMessaging(
+    builder.Configuration,
+    bus => bus.AddConsumer<DashboardPushConsumer>());
 builder.Services.AddDemo();
-builder.Services.AddControllers();
+builder.Services.AddDashboard();
+
+// No schemes yet: the guest cookie (#9) and JWT (#10) add them. Until then nobody is signed in,
+// so the dashboard answers 401 and the hub closes connections.
+builder.Services.AddAuthentication();
+builder.Services.AddControllers().AddJsonOptions(json => DashboardExtensions.ConfigureJson(json.JsonSerializerOptions));
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
@@ -28,6 +35,7 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 }
 
 app.UseSerilogRequestLogging();
+app.UseAuthentication();
 app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
@@ -36,6 +44,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.MapHub<StatusHub>(StatusHub.Path);
 
 // Liveness only for now. Dependency checks (PostgreSQL, Redis, RabbitMQ) join a
 // readiness endpoint once the app actually uses those services.
