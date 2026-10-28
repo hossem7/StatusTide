@@ -1,14 +1,87 @@
+/*
+ * Design tokens from the StatusTide Flow design (see the design README).
+ * Components use these variables only, never raw colors. The design is light only, so the
+ * page opts out of the browser's dark canvas until a dark theme is designed on purpose.
+ */
 :root {
-  font-family: system-ui, sans-serif;
-  color-scheme: light dark;
+  color-scheme: light;
+
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --primary: #4338ca;
+  --primary-strong: #3730a3;
+  --primary-tint: #eef2ff;
+  --primary-ink: #312e81;
+
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-muted: #f2f4f7;
+  --border: #e4e7ec;
+  --border-strong: #d0d5dd;
+  --radius-card: 14px;
+  --radius-control: 10px;
+
+  --text-primary: #101828;
+  --text-secondary: #475467;
+  --text-control: #344054;
+
+  --status-operational: #067647;
+  --status-operational-bg: #ecfdf3;
+  --status-operational-dot: #17b26a;
+  --status-degraded: #b54708;
+  --status-degraded-bg: #fffaeb;
+  --status-outage: #b42318;
+  --status-outage-bg: #fef3f2;
+  --status-outage-border: #fda29b;
+  --status-neutral: #475467;
+  --status-neutral-bg: #f2f4f7;
+
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 body {
   margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
 
-main {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+a {
+  color: var(--primary-strong);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+/* Visible to screen readers only. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.button {
+  padding: 10px 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }

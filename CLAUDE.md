@@ -13,6 +13,7 @@ dotnet run --project StatusTide.Api   # http://localhost:5080, health at /health
 
 cd WebUI && npm ci                    # frontend dependencies
 npm run lint                          # oxlint
+npm test                              # Vitest and React Testing Library
 npm run build                         # type check + production build
 npm run dev                           # http://localhost:5173, proxies /api and /hubs to the API
 

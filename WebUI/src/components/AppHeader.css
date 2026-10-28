@@ -1,0 +1,56 @@
+.app-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.app-header__brand svg {
+  color: var(--primary);
+}
+
+.app-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-header__link {
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--text-control);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.app-header__link[aria-current='page'] {
+  background: var(--primary-tint);
+  color: var(--primary-strong);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .app-header__inner {
+    padding: 12px 16px;
+  }
+}

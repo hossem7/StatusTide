@@ -1,0 +1,42 @@
+.status-pill {
+  --pill-fg: var(--status-neutral);
+  --pill-bg: var(--status-neutral-bg);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pill-fg);
+  background: var(--pill-bg);
+}
+
+.status-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pill-fg);
+}
+
+.status-pill[data-status='operational'] {
+  --pill-fg: var(--status-operational);
+  --pill-bg: var(--status-operational-bg);
+}
+
+.status-pill[data-status='degradedPerformance'] {
+  --pill-fg: var(--status-degraded);
+  --pill-bg: var(--status-degraded-bg);
+}
+
+.status-pill[data-status='partialOutage'],
+.status-pill[data-status='majorOutage'] {
+  --pill-fg: var(--status-outage);
+  --pill-bg: var(--status-outage-bg);
+}
+
+.status-pill[data-status='underMaintenance'] {
+  --pill-fg: var(--primary-strong);
+  --pill-bg: var(--primary-tint);
+}
