@@ -166,6 +166,7 @@ Remove the cluster with `k3d cluster delete statustide`. The web app is not in t
 
 - Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: SeaweedFS for S3 (MinIO no longer publishes Docker images), Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
 - No real vendor is polled during development. Readers are built and tested against hand-written sample responses, plus the demo vendor.
+- The demo vendor, Acme Cloud, has no feed of its own. Its outage lives in Redis, and `POST /api/demo/outage` starts one (`DELETE` resolves it, `GET` shows its state). The incident appears within seconds and moves from investigating to monitoring. Every visitor shares the one outage, so it resolves itself after 5 minutes and the next one can start 2 minutes later.
 
 ## About the data
 

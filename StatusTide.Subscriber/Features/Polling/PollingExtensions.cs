@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+using StatusTide.Common.Demo;
+using StatusTide.Subscriber.Features.Polling.Demo;
 using StatusTide.Subscriber.Features.Polling.Statuspage;
 
 namespace StatusTide.Subscriber.Features.Polling;
@@ -20,6 +22,8 @@ public static class PollingExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpClient<FeedClient>(http => http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent));
         services.AddTransient<IStatusReader, StatuspageReader>();
+        services.AddTransient<IStatusReader, DemoReader>();
+        services.AddSingleton<DemoOutageStore>();
         services.AddSingleton<VendorPollState>();
         services.AddScoped<SnapshotWriter>();
         return services;

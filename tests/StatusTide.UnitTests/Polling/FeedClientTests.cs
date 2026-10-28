@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
+using StatusTide.Common.Redis;
 
 using StatusTide.Data.Vendors;
 using StatusTide.Subscriber.Features.Polling;
@@ -202,13 +203,21 @@ public class FeedClientTests
     }
 
     [Fact]
-    public void AddPolling_registers_a_reader_for_Statuspage()
+    public void AddPolling_registers_readers_for_Statuspage_and_the_demo_vendor()
     {
-        using var provider = new ServiceCollection().AddPolling(new ConfigurationBuilder().Build()).BuildServiceProvider(validateScopes: true);
+        // The demo reader needs Redis. Nothing is read here, so an address with no server is enough.
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Redis"] = "localhost:1,connectTimeout=100" })
+            .Build();
+        using var provider = new ServiceCollection()
+            .AddStatusTideRedis(configuration)
+            .AddPolling(configuration)
+            .BuildServiceProvider(validateScopes: true);
 
-        var readers = provider.GetServices<IStatusReader>();
+        var formats = provider.GetServices<IStatusReader>().Select(r => r.Format);
 
-        Assert.Contains(readers, r => r.Format == FeedFormat.Statuspage);
+        Assert.Contains(FeedFormat.Statuspage, formats);
+        Assert.Contains(FeedFormat.Demo, formats);
     }
 
     static FakeFeed Failing(HttpStatusCode status, RetryConditionHeaderValue retryAfter) =>

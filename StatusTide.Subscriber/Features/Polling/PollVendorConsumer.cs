@@ -45,7 +45,7 @@ public class PollVendorConsumer(
         var reader = readers.FirstOrDefault(r => r.Format == vendor.Format);
         if (reader is null)
         {
-            // Not an error: retrying would not help, and the demo vendor has no reader yet.
+            // Not an error: retrying would not help until a reader for the format exists.
             logger.LogDebug("No reader for {Format} feeds; skipping vendor {VendorId}", vendor.Format, vendorId);
             return;
         }

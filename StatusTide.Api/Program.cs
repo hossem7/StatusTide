@@ -1,11 +1,19 @@
 using Serilog;
+using StatusTide.Api.Features.Demo;
 using StatusTide.Common.Logging;
+using StatusTide.Common.Messaging;
+using StatusTide.Common.Redis;
 using StatusTide.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddStatusTideLogging(builder.Configuration, builder.Environment);
 builder.Services.AddStatusTideData(builder.Configuration);
+builder.Services.AddStatusTideRedis(builder.Configuration);
+
+// Publish only for now. The API gets consumers when the dashboard goes live (issue #7).
+builder.Services.AddStatusTideMessaging(builder.Configuration);
+builder.Services.AddDemo();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -20,6 +28,7 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 }
 
 app.UseSerilogRequestLogging();
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {
