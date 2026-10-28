@@ -65,7 +65,7 @@ public class DashboardQuery(StatusTideDbContext db, IConnectionMultiplexer redis
         var openIncidents = (await db.Incidents
             .AsNoTracking()
             .Where(i => vendorIds.Contains(i.VendorId) && i.ResolvedAt == null)
-            .Select(i => new { i.Id, i.VendorId, i.Title, i.StartedAt })
+            .Select(i => new OpenIncidentRow(i.Id, i.VendorId, i.Title, i.StartedAt, i.Components.Select(c => c.Id).ToList()))
             .ToListAsync(cancellationToken))
             .ToLookup(i => i.VendorId);
 
@@ -76,7 +76,8 @@ public class DashboardQuery(StatusTideDbContext db, IConnectionMultiplexer redis
             .Select(group =>
             {
                 var vendor = vendors[group.Key.VendorId];
-                var incidents = openIncidents[vendor.Id].ToList();
+                var followedIds = group.Select(f => f.ComponentId).ToHashSet();
+                var incidents = openIncidents[vendor.Id].Where(i => i.Affects(followedIds)).ToList();
                 var latest = incidents.MaxBy(i => i.StartedAt);
                 var components = group
                     .OrderBy(f => f.ComponentName, StringComparer.OrdinalIgnoreCase)
@@ -129,4 +130,13 @@ public class DashboardQuery(StatusTideDbContext db, IConnectionMultiplexer redis
     }
 
     private sealed record FollowRow(Guid UserId, Guid VendorId, Guid ComponentId, string ComponentName, ComponentStatus Status);
+
+    private sealed record OpenIncidentRow(Guid Id, Guid VendorId, string Title, DateTimeOffset StartedAt, List<Guid> ComponentIds)
+    {
+        /// <summary>
+        /// True when the incident lists one of the user's followed components. Some Statuspage
+        /// incidents name no components at all; those count for every follower of the vendor.
+        /// </summary>
+        public bool Affects(HashSet<Guid> followedIds) => ComponentIds.Count == 0 || ComponentIds.Exists(followedIds.Contains);
+    }
 }

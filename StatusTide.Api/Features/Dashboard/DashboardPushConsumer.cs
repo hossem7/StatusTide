@@ -9,10 +9,10 @@ namespace StatusTide.Api.Features.Dashboard;
 /// read from the database when the message arrives, so a duplicate or late message just sends
 /// the current state again, which makes this safe to retry.
 /// </summary>
-public class VendorStatusChangedConsumer(
+public class DashboardPushConsumer(
     DashboardQuery query,
     IHubContext<StatusHub> hub,
-    ILogger<VendorStatusChangedConsumer> logger) : IConsumer<VendorStatusChanged>
+    ILogger<DashboardPushConsumer> logger) : IConsumer<VendorStatusChanged>
 {
     public async Task Consume(ConsumeContext<VendorStatusChanged> context)
     {

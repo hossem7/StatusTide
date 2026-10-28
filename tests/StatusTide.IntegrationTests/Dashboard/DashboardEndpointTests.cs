@@ -131,6 +131,37 @@ public sealed class DashboardEndpointTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Incidents_on_components_the_user_does_not_follow_are_left_out()
+    {
+        var user = await _seed.AddGuestAsync();
+        var vendor = await _seed.AddVendorAsync("Nimbus", ComponentStatus.MajorOutage, ComponentStatus.Operational);
+        await _seed.FollowAsync(user, vendor.Components[1]);
+        await _seed.AddIncidentAsync(vendor, "Outage on the other component", DashboardSeed.Now, components: vendor.Components[0]);
+
+        var card = Assert.Single((await GetDashboardAsync(user)).Vendors);
+
+        Assert.Equal(0, card.ActiveIncidentCount);
+        Assert.Null(card.ActiveIncident);
+    }
+
+    [Fact]
+    public async Task Incidents_that_name_no_components_count_for_every_follower()
+    {
+        var user = await _seed.AddGuestAsync();
+        var vendor = await _seed.AddVendorAsync("Nimbus", ComponentStatus.MajorOutage, ComponentStatus.Operational);
+        await _seed.FollowAsync(user, vendor.Components[1]);
+        await _seed.AddIncidentAsync(vendor, "Outage on the other component", DashboardSeed.Now.AddMinutes(-5), components: vendor.Components[0]);
+        var vendorWide = await _seed.AddIncidentAsync(vendor, "Incident with no components", DashboardSeed.Now);
+        await _seed.AddIncidentAsync(
+            vendor, "Incident on both", DashboardSeed.Now.AddMinutes(-10), components: [vendor.Components[0], vendor.Components[1]]);
+
+        var card = Assert.Single((await GetDashboardAsync(user)).Vendors);
+
+        Assert.Equal(2, card.ActiveIncidentCount);
+        Assert.Equal(vendorWide.Id, card.ActiveIncident?.Id);
+    }
+
+    [Fact]
     public async Task Last_checked_comes_from_the_poll_time_in_Redis()
     {
         var user = await _seed.AddGuestAsync();

@@ -13,7 +13,10 @@ public record DashboardDto(IReadOnlyList<VendorCardDto> Vendors);
 /// <param name="ComponentCount">All the vendor's components, for "3 of 10 components".</param>
 /// <param name="LastCheckedAt">The last successful poll, or null when we have none on record.</param>
 /// <param name="IsDemo">True for Acme Cloud, which offers "Simulate an outage".</param>
-/// <param name="ActiveIncident">The most recent open incident, or null when there is none.</param>
+/// <param name="ActiveIncidentCount">
+/// Open incidents on the components this user follows, plus open incidents that name no components.
+/// </param>
+/// <param name="ActiveIncident">The most recent of those incidents, or null when there is none.</param>
 public record VendorCardDto(
     Guid Id,
     string Slug,

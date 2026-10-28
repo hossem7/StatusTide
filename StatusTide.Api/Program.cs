@@ -14,7 +14,7 @@ builder.Services.AddStatusTideRedis(builder.Configuration);
 
 builder.Services.AddStatusTideMessaging(
     builder.Configuration,
-    bus => bus.AddConsumer<VendorStatusChangedConsumer>());
+    bus => bus.AddConsumer<DashboardPushConsumer>());
 builder.Services.AddDemo();
 builder.Services.AddDashboard();
 

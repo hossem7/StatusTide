@@ -58,7 +58,13 @@ public sealed class DashboardSeed(ApiFactory factory)
     public Task FollowAsync(Guid userId, params Guid[] componentIds) =>
         SaveAsync(db => db.Follows.AddRange(componentIds.Select(id => new Follow { UserId = userId, ComponentId = id, CreatedAt = Now })));
 
-    public async Task<Incident> AddIncidentAsync(Vendor vendor, string title, DateTimeOffset startedAt, DateTimeOffset? resolvedAt = null)
+    /// <summary>An incident on the given components, or on none when <paramref name="components"/> is empty.</summary>
+    public async Task<Incident> AddIncidentAsync(
+        Vendor vendor,
+        string title,
+        DateTimeOffset startedAt,
+        DateTimeOffset? resolvedAt = null,
+        params Component[] components)
     {
         var incident = new Incident
         {
@@ -70,7 +76,12 @@ public sealed class DashboardSeed(ApiFactory factory)
             ResolvedAt = resolvedAt,
             SourceUrl = $"{vendor.StatusPageUrl}/incidents/{Guid.NewGuid():N}",
         };
-        await SaveAsync(db => db.Incidents.Add(incident));
+        await SaveAsync(db =>
+        {
+            db.Components.AttachRange(components);
+            incident.Components.AddRange(components);
+            db.Incidents.Add(incident);
+        });
         return incident;
     }
 
