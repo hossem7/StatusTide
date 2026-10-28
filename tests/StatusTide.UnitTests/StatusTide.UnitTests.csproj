@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\StatusTide.Contracts\StatusTide.Contracts.csproj" />
     <ProjectReference Include="..\..\StatusTide.Common\StatusTide.Common.csproj" />
+    <ProjectReference Include="..\..\StatusTide.Api\StatusTide.Api.csproj" />
     <ProjectReference Include="..\..\StatusTide.Subscriber\StatusTide.Subscriber.csproj" />
   </ItemGroup>
 
