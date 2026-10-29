@@ -14,6 +14,12 @@ public class User
     public string? Email { get; set; }
 
     public bool IsGuest { get; set; }
+
+    /// <summary>
+    /// SHA-256 of the guest's cookie token. The token itself is never stored, so a database
+    /// leak can't be used to sign in as a guest. Null for accounts.
+    /// </summary>
+    public byte[]? GuestTokenHash { get; set; }
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>Renewed on each visit. Guests inactive for 30 days are deleted.</summary>

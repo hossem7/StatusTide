@@ -69,7 +69,7 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 
 **Confirm before alarming.** A component is marked down by our checks only after three failures in a row. That makes our detection about two minutes later than the first failed check, but one slow response shouldn't wake anyone up, and noisy alerts are the fastest way to get an alert tool muted.
 
-**Guests are real users.** A first visit creates a guest user on the server and a secure HttpOnly cookie, instead of keeping state in the browser. Visitors exercise the same backend as account holders, and signing up just transfers ownership of the guest's data. Guests inactive for 30 days are deleted by a cleanup job. Guests get in-app alerts only and lower limits, so the open door can't be used to send email.
+**Guests are real users.** "Try it as a guest" creates a guest user on the server and a secure HttpOnly cookie, instead of keeping state in the browser. The cookie holds a random token and the database keeps only its hash. Visitors exercise the same backend as account holders, and signing up just transfers ownership of the guest's data. Guests inactive for 30 days are deleted by a cleanup job. Guests get in-app alerts only and lower limits, so the open door can't be used to send email.
 
 **The server fetches URLs, so SSRF is designed in.** Account holders can add their own status page by URL, which means the server will fetch addresses users give it. Only http and https on ports 80 and 443 are allowed, DNS is resolved and private, loopback and link-local ranges are blocked (including the cloud metadata address 169.254.169.254), and every redirect is checked again. The EC2 instance also requires IMDSv2. Webhook URLs are limited to official Slack and Discord domains.
 
@@ -167,6 +167,7 @@ Remove the cluster with `k3d cluster delete statustide`. The web app is not in t
 - Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: SeaweedFS for S3 (MinIO no longer publishes Docker images), Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
 - No real vendor is polled during development. Readers are built and tested against hand-written sample responses, plus the demo vendor.
 - The demo vendor, Acme Cloud, has no feed of its own. Its outage lives in Redis, and `POST /api/demo/outage` starts one (`DELETE` resolves it, `GET` shows its state). The incident appears within seconds and moves from investigating to monitoring. Every visitor shares the one outage, so it resolves itself after 5 minutes and the next one can start 2 minutes later.
+- `POST /api/guest` starts a guest session: a guest user that follows the starter vendors in `Guests:StarterVendors` (Acme Cloud for now), and a cookie that signs in later requests. `GET /api/me` shows who is signed in. The cookie is `Secure`. Chrome and Firefox accept that on `http://localhost`, so local development needs no HTTPS; Safari does not, so use one of the others locally.
 
 ## About the data
 

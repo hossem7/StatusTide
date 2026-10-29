@@ -1,6 +1,8 @@
 using Serilog;
 using StatusTide.Api.Features.Dashboard;
 using StatusTide.Api.Features.Demo;
+using StatusTide.Api.Features.Guests;
+using StatusTide.Api.Features.Users;
 using StatusTide.Common.Logging;
 using StatusTide.Common.Messaging;
 using StatusTide.Common.Redis;
@@ -18,9 +20,8 @@ builder.Services.AddStatusTideMessaging(
 builder.Services.AddDemo();
 builder.Services.AddDashboard();
 
-// No schemes yet: the guest cookie (#9) and JWT (#10) add them. Until then nobody is signed in,
-// so the dashboard answers 401 and the hub closes connections.
-builder.Services.AddAuthentication();
+builder.Services.AddGuests();
+builder.Services.AddScoped<MeQuery>();
 builder.Services.AddControllers().AddJsonOptions(json => DashboardExtensions.ConfigureJson(json.JsonSerializerOptions));
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
