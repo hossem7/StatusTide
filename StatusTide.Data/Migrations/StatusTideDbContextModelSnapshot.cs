@@ -304,6 +304,11 @@ namespace StatusTide.Data.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
+                    b.Property<byte[]>("GuestTokenHash")
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea")
+                        .HasColumnName("guest_token_hash");
+
                     b.Property<bool>("IsGuest")
                         .HasColumnType("boolean")
                         .HasColumnName("is_guest");
@@ -318,6 +323,11 @@ namespace StatusTide.Data.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("GuestTokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_guest_token_hash")
+                        .HasFilter("guest_token_hash IS NOT NULL");
 
                     b.HasIndex("LastSeenAt")
                         .HasDatabaseName("ix_users_last_seen_at")

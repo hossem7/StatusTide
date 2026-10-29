@@ -37,7 +37,7 @@ Publishers and subscribers that only talk through RabbitMQ, using MassTransit.
 | `StatusTide.Common` | Shared plumbing: `AddStatusTideLogging`, `AddStatusTideMessaging`, `AddStatusTideRedis`, retry policy, CorrelationId in consumer logs, `DemoOutageStore` (the demo vendor's outage in Redis, written by the Api and read by the Subscriber) | Contracts |
 | `StatusTide.Data` | `StatusTideDbContext`, entities and their configurations (one folder per feature), migrations, the Acme Cloud seed | Nothing |
 | `StatusTide.Api` | Controllers, SignalR hub, query handlers for screens | Contracts, Common, Data |
-| `StatusTide.Publisher` | Quartz.NET jobs that publish commands. Always one replica. | Contracts, Common, Data |
+| `StatusTide.Publisher` | Quartz.NET jobs: publishing commands on a schedule, and nightly housekeeping such as deleting inactive guests. Always one replica. | Contracts, Common, Data |
 | `StatusTide.Subscriber` | `IConsumer<T>` implementations, grouped by feature | Contracts, Common, Data |
 | `WebUI` | React + TypeScript (Vite) | Calls the API only |
 

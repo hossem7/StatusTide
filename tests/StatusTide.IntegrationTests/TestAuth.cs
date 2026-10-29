@@ -9,7 +9,7 @@ namespace StatusTide.IntegrationTests;
 
 /// <summary>
 /// Test-only sign-in: a request with the <see cref="Header"/> header is signed in as that user
-/// id. It stands in for the guest cookie (#9) until it exists, and never ships in the API.
+/// id, so tests don't need to start a guest session first. It never ships in the API.
 /// </summary>
 public static class TestAuth
 {
