@@ -2,9 +2,11 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
-import { acmeDown, nimbus } from '../../test/sampleCards'
+import type { DemoOutage } from '../../api/types'
+import { acme, acmeDown, activeOutage, coolingDown, nimbus, noOutage } from '../../test/sampleCards'
 import { DashboardView } from './DashboardPage'
 import type { DashboardState, LiveState } from './useDashboard'
+import type { UseDemoOutage } from './useDemoOutage'
 
 const now = Date.parse('2026-11-02T12:00:40Z')
 
@@ -68,17 +70,96 @@ describe('DashboardView', () => {
   })
 
   it('asks a signed out user to sign in', () => {
-    renderView({ kind: 'error', error: new ApiError(401, '/api/dashboard') })
+    renderView({ kind: 'error', error: new ApiError(401, 'GET', '/api/dashboard') })
 
     expect(screen.getByRole('alert')).toHaveTextContent('You need to be signed in')
     expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
   })
 
   it('lets the user retry after a server error', async () => {
-    const retry = renderView({ kind: 'error', error: new ApiError(503, '/api/dashboard') })
+    const retry = renderView({ kind: 'error', error: new ApiError(503, 'GET', '/api/dashboard') })
 
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
     expect(retry).toHaveBeenCalled()
+  })
+})
+
+describe('OutageBanner', () => {
+  it('names the vendor that is down and its incident', () => {
+    renderView({ kind: 'ready', vendors: [nimbus, acmeDown] })
+
+    const banner = screen.getByRole('region', { name: 'Outages' })
+    expect(banner).toHaveTextContent('Acme Cloud (demo): major outage.')
+    expect(banner).toHaveTextContent('Elevated API errors, since')
+  })
+
+  it('counts the other vendors that are down', () => {
+    const down = (name: string, id: string) => ({ ...acmeDown, id, name, isDemo: false })
+    renderView({ kind: 'ready', vendors: [acmeDown, down('Nimbus', 'n'), down('Cirrus', 'c')] })
+
+    expect(screen.getByRole('region', { name: 'Outages' })).toHaveTextContent('2 other services are down too.')
+  })
+
+  it('stays hidden while everything is up', () => {
+    renderView({ kind: 'ready', vendors: [acme, nimbus] })
+
+    expect(screen.queryByRole('region', { name: 'Outages' })).toBeNull()
+  })
+})
+
+describe('DemoControls', () => {
+  function renderDemo(outage: DemoOutage | null, extra: Partial<UseDemoOutage> = {}) {
+    const demo = { outage, busy: false, error: '', start: vi.fn(), resolve: vi.fn(), ...extra }
+    render(
+      <DashboardView
+        state={{ kind: 'ready', vendors: [acme, nimbus] }}
+        live="live"
+        announcement=""
+        retry={vi.fn()}
+        now={Date.parse('2026-11-02T12:05:30Z')}
+        demo={demo}
+      />,
+    )
+    return demo
+  }
+
+  it('starts an outage from the demo card only', async () => {
+    const demo = renderDemo(noOutage)
+
+    expect(within(screen.getByRole('article', { name: 'Nimbus' })).queryByRole('button')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Simulate an outage' }))
+
+    expect(demo.start).toHaveBeenCalled()
+  })
+
+  it('resolves a running outage', async () => {
+    const demo = renderDemo(activeOutage)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Resolve the outage' }))
+
+    expect(demo.resolve).toHaveBeenCalled()
+  })
+
+  it('waits for the cooldown', () => {
+    renderDemo(coolingDown)
+
+    expect(screen.getByRole('button', { name: 'Simulate an outage' })).toBeDisabled()
+    expect(screen.getByText('Ready again in 2 min')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['loading', null, {}],
+    ['sending', noOutage, { busy: true }],
+  ] as const)('disables the button while %s', (_, outage, extra) => {
+    renderDemo(outage, extra)
+
+    expect(screen.getByRole('button', { name: 'Simulate an outage' })).toBeDisabled()
+  })
+
+  it('shows why a click failed', () => {
+    renderDemo(noOutage, { error: 'Too many tries. Wait a minute and try again.' })
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Too many tries')
   })
 })

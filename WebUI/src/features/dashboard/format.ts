@@ -53,3 +53,15 @@ export function statsOf(vendors: VendorCard[]): Stats {
     activeIncidents: vendors.reduce((sum, v) => sum + v.activeIncidentCount, 0),
   }
 }
+
+/** "in 2 min" until a time in the future, rounded up so it never says "in 0 min". */
+export function formatWait(until: string, now: number): string {
+  const seconds = Math.max(0, (Date.parse(until) - now) / 1000)
+  if (seconds < 60) return 'in under a minute'
+  return `in ${Math.ceil(seconds / 60)} min`
+}
+
+/** "2:16 PM" in the viewer's own time zone. */
+export function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}

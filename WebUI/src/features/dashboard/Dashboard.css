@@ -181,6 +181,42 @@
   overflow-wrap: anywhere;
 }
 
+.outage-banner {
+  padding: 16px 18px;
+  border-radius: var(--radius-card);
+  background: var(--status-outage-bg);
+  border: 1px solid var(--status-outage-banner-border);
+  color: var(--status-outage-ink);
+  overflow-wrap: anywhere;
+}
+
+.outage-banner p {
+  margin: 0;
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-strong);
+}
+
+.demo-controls p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.demo-controls__note {
+  color: var(--text-secondary);
+}
+
+.demo-controls__error {
+  flex-basis: 100%;
+  color: var(--status-outage);
+}
+
 @media (max-width: 640px) {
   .dashboard {
     padding: 16px 16px 32px;

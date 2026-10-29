@@ -93,7 +93,7 @@ describe('useDashboard', () => {
   })
 
   it('reports a failed load, and keeps the cards when a later reload fails', async () => {
-    const { result, load, connection } = setup(() => Promise.reject(new ApiError(500, '/api/dashboard')))
+    const { result, load, connection } = setup(() => Promise.reject(new ApiError(500, 'GET', '/api/dashboard')))
     await waitFor(() => expect(result.current.state.kind).toBe('error'))
 
     load.mockResolvedValueOnce({ vendors: [acme] })

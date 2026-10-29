@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { acme, acmeDown, nimbus } from '../../test/sampleCards'
-import { componentSummary, formatChecked, initialsOf, statsOf } from './format'
+import { componentSummary, formatChecked, formatWait, initialsOf, statsOf } from './format'
 
 const now = Date.parse('2026-11-02T12:00:00Z')
 
@@ -58,5 +58,16 @@ describe('statsOf', () => {
       operational: 0,
       activeIncidents: 3,
     })
+  })
+})
+
+describe('formatWait', () => {
+  it.each([
+    ['2026-11-02T12:01:30Z', 'in 2 min'],
+    ['2026-11-02T12:01:00Z', 'in 1 min'],
+    ['2026-11-02T12:00:59Z', 'in under a minute'],
+    ['2026-11-02T11:59:00Z', 'in under a minute'],
+  ])('%s is %s away', (until, text) => {
+    expect(formatWait(until, now)).toBe(text)
   })
 })
