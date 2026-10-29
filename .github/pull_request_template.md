@@ -12,7 +12,7 @@ Closes #
 
 - [ ] Linked to an issue (`Closes #N` or `Related to #N`)
 - [ ] `dotnet build` and `dotnet test` pass locally
-- [ ] `npm run lint` and `npm run build` pass in `WebUI` (if the frontend changed)
+- [ ] `npm run lint`, `npm test` and `npm run build` pass in `WebUI` (if the frontend changed)
 - [ ] New behavior has tests
 - [ ] New messages are in `StatusTide.Contracts` and their consumers are idempotent
 - [ ] No secrets, real credentials or AWS keys

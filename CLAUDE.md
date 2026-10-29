@@ -61,7 +61,7 @@ Rules:
 - **Store and show facts only**: statuses, component names, incident titles, timestamps and source links. Never store or display a vendor's written update text. AI summaries use only those facts plus our own check data.
 - **Treat every fetched URL and every incident title as untrusted.** URLs go through the SSRF guard (http/https, ports 80 and 443, no private, loopback or link-local addresses, every redirect re-checked). Incident titles are wrapped as data in AI prompts.
 - **No secrets in the repo and no AWS access keys anywhere.** Production uses the EC2 IAM role. Local values live in `appsettings.Development.json` (fake development credentials only) or `.env`, never committed.
-- **Commits and PRs are authored by the repo owner only.** No co-author trailers, no "Generated with" lines in commits or PR descriptions.
+- **Commits and PRs are authored by the person making the change.** No AI co-author trailers and no "Generated with" lines in commits or PR descriptions, whoever opens the PR. When you take over someone else's work, keep their commits under their name and add yours on top.
 
 ## Writing style for docs, comments and PRs
 
