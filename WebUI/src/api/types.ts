@@ -39,3 +39,16 @@ export interface VendorCard {
 export interface Dashboard {
   vendors: VendorCard[]
 }
+
+// Mirrors DemoOutageDto in StatusTide.Api/Features/Demo/DemoController.cs.
+
+/**
+ * The demo vendor's simulated outage, shared by every visitor. "coolingDown" means the last
+ * outage ended and a new one can start at `nextStartAt`.
+ */
+export interface DemoOutage {
+  state: 'none' | 'active' | 'coolingDown'
+  startedAt: string | null
+  resolvesAt: string | null
+  nextStartAt: string | null
+}

@@ -1,7 +1,9 @@
 import { ApiError } from '../../api/client'
 import { LiveIndicator } from './LiveIndicator'
+import { OutageBanner } from './OutageBanner'
 import { StatTiles } from './StatTiles'
 import { useDashboard, type UseDashboard } from './useDashboard'
+import { useDemoOutage, type UseDemoOutage } from './useDemoOutage'
 import { useNow } from './useNow'
 import { VendorCardView } from './VendorCardView'
 import './Dashboard.css'
@@ -9,13 +11,24 @@ import './Dashboard.css'
 export function DashboardPage() {
   const dashboard = useDashboard()
   const now = useNow(5_000)
-  return <DashboardView {...dashboard} now={now} />
+  const demoCard = dashboard.state.kind === 'ready' ? dashboard.state.vendors.find((v) => v.isDemo) : undefined
+  const demo = useDemoOutage(demoCard?.status)
+  return <DashboardView {...dashboard} now={now} demo={demo} />
 }
 
 /** The screen itself, with no connection or timers, so tests can render any state directly. */
-export function DashboardView({ state, live, announcement, retry, now }: UseDashboard & { now: number }) {
+export function DashboardView({
+  state,
+  live,
+  announcement,
+  retry,
+  now,
+  demo,
+}: UseDashboard & { now: number; demo?: UseDemoOutage }) {
   return (
     <main className="dashboard">
+      {state.kind === 'ready' && <OutageBanner vendors={state.vendors} />}
+
       <div className="dashboard__top">
         <div>
           <h1>Your services</h1>
@@ -43,7 +56,7 @@ export function DashboardView({ state, live, announcement, retry, now }: UseDash
           <StatTiles vendors={state.vendors} />
           <div className="dashboard__cards">
             {state.vendors.map((card) => (
-              <VendorCardView key={card.id} card={card} now={now} />
+              <VendorCardView key={card.id} card={card} now={now} demo={demo} />
             ))}
           </div>
         </>

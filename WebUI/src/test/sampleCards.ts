@@ -1,4 +1,4 @@
-import type { VendorCard } from '../api/types'
+import type { DemoOutage, VendorCard } from '../api/types'
 
 // Sample cards for tests only. Acme Cloud is our demo vendor; the others are made up, like the
 // ".example" vendors in the backend fixtures. Never use real vendors here.
@@ -44,3 +44,16 @@ export const acmeDown = {
     startedAt: '2026-11-02T12:01:00Z',
   },
 } satisfies VendorCard
+
+// Demo outage states, as GET /api/demo/outage returns them.
+
+export const noOutage = { state: 'none', startedAt: null, resolvesAt: null, nextStartAt: null } satisfies DemoOutage
+
+export const activeOutage = {
+  state: 'active',
+  startedAt: '2026-11-02T12:00:00Z',
+  resolvesAt: '2026-11-02T12:05:00Z',
+  nextStartAt: '2026-11-02T12:07:00Z',
+} satisfies DemoOutage
+
+export const coolingDown = { ...activeOutage, state: 'coolingDown' } satisfies DemoOutage

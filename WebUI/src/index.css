@@ -34,6 +34,8 @@
   --status-outage: #b42318;
   --status-outage-bg: #fef3f2;
   --status-outage-border: #fda29b;
+  --status-outage-banner-border: #fecdca;
+  --status-outage-ink: #912018;
   --status-neutral: #475467;
   --status-neutral-bg: #f2f4f7;
 
@@ -78,6 +80,12 @@ h3 {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.button:disabled {
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  cursor: not-allowed;
 }
 
 .button:focus-visible,
