@@ -2,6 +2,7 @@ using Serilog;
 using StatusTide.Api.Features.Dashboard;
 using StatusTide.Api.Features.Demo;
 using StatusTide.Api.Features.Guests;
+using StatusTide.Api.Features.RequestLogging;
 using StatusTide.Api.Features.Users;
 using StatusTide.Common.Logging;
 using StatusTide.Common.Messaging;
@@ -36,6 +37,7 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 }
 
 app.UseSerilogRequestLogging();
+app.UseMiddleware<ClientAbortMiddleware>();
 app.UseAuthentication();
 app.UseRateLimiter();
 
