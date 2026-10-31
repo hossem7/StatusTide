@@ -54,11 +54,14 @@ export function statsOf(vendors: VendorCard[]): Stats {
   }
 }
 
-/** "in 2 min" until a time in the future, rounded up so it never says "in 0 min". */
+/**
+ * "in 2 min" until a time in the future. Rounds to the nearest minute because `now` can be a few
+ * seconds old: rounding up would turn a fresh 2 minute wait into "in 3 min".
+ */
 export function formatWait(until: string, now: number): string {
   const seconds = Math.max(0, (Date.parse(until) - now) / 1000)
   if (seconds < 60) return 'in under a minute'
-  return `in ${Math.ceil(seconds / 60)} min`
+  return `in ${Math.round(seconds / 60)} min`
 }
 
 /** "2:16 PM" in the viewer's own time zone. */

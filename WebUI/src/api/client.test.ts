@@ -21,6 +21,27 @@ describe('api.getDashboard', () => {
   })
 })
 
+describe('session calls', () => {
+  const me = { id: 'id', isGuest: true, email: null, guestExpiresAt: '2026-12-02T12:00:00Z' }
+
+  it('getMe reads /api/me', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(me)))
+
+    await expect(api.getMe()).resolves.toEqual(me)
+    expect(fetch).toHaveBeenCalledWith('/api/me', expect.objectContaining({ method: 'GET' }))
+  })
+
+  it('startGuest posts to /api/guest and sends cookies along', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(me, { status: 201 })))
+
+    await expect(api.startGuest()).resolves.toEqual(me)
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/guest',
+      expect.objectContaining({ method: 'POST', credentials: 'same-origin' }),
+    )
+  })
+})
+
 describe('demo outage calls', () => {
   it.each([
     ['startDemoOutage', 'POST'],

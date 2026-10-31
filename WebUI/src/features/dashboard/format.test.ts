@@ -63,7 +63,9 @@ describe('statsOf', () => {
 
 describe('formatWait', () => {
   it.each([
+    ['2026-11-02T12:02:05Z', 'in 2 min'],
     ['2026-11-02T12:01:30Z', 'in 2 min'],
+    ['2026-11-02T12:01:29Z', 'in 1 min'],
     ['2026-11-02T12:01:00Z', 'in 1 min'],
     ['2026-11-02T12:00:59Z', 'in under a minute'],
     ['2026-11-02T11:59:00Z', 'in under a minute'],

@@ -1,7 +1,7 @@
 import './AppHeader.css'
 
 /** The app bar. Links to pages that don't exist yet (Add services) arrive with those pages. */
-export function AppHeader() {
+export function AppHeader({ isGuest }: { isGuest: boolean }) {
   return (
     <header className="app-header">
       <div className="app-header__inner">
@@ -21,6 +21,7 @@ export function AppHeader() {
           <a href="/" aria-current="page" className="app-header__link">
             Dashboard
           </a>
+          {isGuest && <span className="app-header__badge">Guest</span>}
         </nav>
       </div>
     </header>
