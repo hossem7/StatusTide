@@ -122,7 +122,7 @@ docker compose up --build
 | Service | Address |
 | --- | --- |
 | API | http://localhost:5080 (health check at `/health`) |
-| Web app | http://localhost:8080 |
+| Web app | http://localhost:8080 (forwards `/api` and `/hubs` to the API) |
 | RabbitMQ management | http://localhost:15672 (user `statustide`) |
 | Mailpit inbox | http://localhost:8025 |
 | S3 stand-in (SeaweedFS) | http://localhost:8333 |
