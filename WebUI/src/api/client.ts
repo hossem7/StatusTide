@@ -1,4 +1,4 @@
-import type { Dashboard, DemoOutage } from './types'
+import type { Dashboard, DemoOutage, Me } from './types'
 
 /** A response other than 2xx. `status` lets screens tell "not signed in" from "server down". */
 export class ApiError extends Error {
@@ -26,6 +26,10 @@ async function request<T>(method: string, path: string, signal?: AbortSignal): P
 
 /** The one place the app talks to the API. */
 export const api = {
+  /** 401 when there is no session yet. */
+  getMe: (signal?: AbortSignal) => request<Me>('GET', '/api/me', signal),
+  /** Sets the guest cookie. Returns the current user if there already is a session. */
+  startGuest: () => request<Me>('POST', '/api/guest'),
   getDashboard: (signal?: AbortSignal) => request<Dashboard>('GET', '/api/dashboard', signal),
   getDemoOutage: (signal?: AbortSignal) => request<DemoOutage>('GET', '/api/demo/outage', signal),
   /** 409 when an outage is already running or the demo is cooling down. */

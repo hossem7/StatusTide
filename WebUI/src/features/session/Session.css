@@ -1,0 +1,64 @@
+.guest-prompt {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 72px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.guest-prompt h1 {
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.guest-prompt p {
+  margin: 0;
+}
+
+.guest-prompt__lead {
+  font-size: 19px;
+  color: var(--text-secondary);
+}
+
+.guest-prompt__note {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.guest-prompt__error {
+  color: var(--status-outage);
+}
+
+.guest-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--radius-card);
+  background: var(--primary-tint);
+  color: var(--primary-ink);
+}
+
+.guest-banner p {
+  flex: 1 1 360px;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .guest-prompt {
+    padding: 40px 16px 32px;
+  }
+
+  .guest-prompt h1 {
+    font-size: 36px;
+  }
+
+  .guest-banner p {
+    flex-basis: 100%;
+  }
+}

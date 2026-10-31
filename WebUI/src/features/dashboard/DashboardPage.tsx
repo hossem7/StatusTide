@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { ApiError } from '../../api/client'
+import { GuestBanner } from '../session/GuestBanner'
 import { LiveIndicator } from './LiveIndicator'
 import { OutageBanner } from './OutageBanner'
 import { StatTiles } from './StatTiles'
@@ -8,12 +10,22 @@ import { useNow } from './useNow'
 import { VendorCardView } from './VendorCardView'
 import './Dashboard.css'
 
-export function DashboardPage() {
+export function DashboardPage({ isGuest, onSignedOut }: { isGuest: boolean; onSignedOut: () => void }) {
   const dashboard = useDashboard()
   const now = useNow(5_000)
   const demoCard = dashboard.state.kind === 'ready' ? dashboard.state.vendors.find((v) => v.isDemo) : undefined
   const demo = useDemoOutage(demoCard?.status)
-  return <DashboardView {...dashboard} now={now} demo={demo} />
+
+  const signedOut = dashboard.state.kind === 'error' && isUnauthorized(dashboard.state.error)
+  useEffect(() => {
+    if (signedOut) onSignedOut()
+  }, [signedOut, onSignedOut])
+
+  return <DashboardView {...dashboard} now={now} demo={demo} isGuest={isGuest} />
+}
+
+function isUnauthorized(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401
 }
 
 /** The screen itself, with no connection or timers, so tests can render any state directly. */
@@ -24,9 +36,11 @@ export function DashboardView({
   retry,
   now,
   demo,
-}: UseDashboard & { now: number; demo?: UseDemoOutage }) {
+  isGuest = false,
+}: UseDashboard & { now: number; demo?: UseDemoOutage; isGuest?: boolean }) {
   return (
     <main className="dashboard">
+      {isGuest && <GuestBanner />}
       {state.kind === 'ready' && <OutageBanner vendors={state.vendors} />}
 
       <div className="dashboard__top">
@@ -66,7 +80,7 @@ export function DashboardView({
 }
 
 function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  if (error instanceof ApiError && error.status === 401) {
+  if (isUnauthorized(error)) {
     return (
       <div className="dashboard__message" role="alert">
         <p>You need to be signed in to see your dashboard.</p>

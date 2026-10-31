@@ -25,6 +25,7 @@
   --text-primary: #101828;
   --text-secondary: #475467;
   --text-control: #344054;
+  --text-on-primary: #ffffff;
 
   --status-operational: #067647;
   --status-operational-bg: #ecfdf3;
@@ -82,10 +83,32 @@ h3 {
   cursor: pointer;
 }
 
+.button--primary {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--text-on-primary);
+}
+
 .button:disabled {
+  border-color: var(--border-strong);
   color: var(--text-secondary);
   background: var(--bg-muted);
   cursor: not-allowed;
+}
+
+/* The short wait before a screen knows who the user is, or that the server is down. */
+.session-message {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.session-message p {
+  margin: 0;
 }
 
 .button:focus-visible,

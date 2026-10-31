@@ -1,7 +1,14 @@
-import type { DemoOutage, VendorCard } from '../api/types'
+import type { DemoOutage, Me, VendorCard } from '../api/types'
 
 // Sample cards for tests only. Acme Cloud is our demo vendor; the others are made up, like the
 // ".example" vendors in the backend fixtures. Never use real vendors here.
+
+export const guest = {
+  id: '0199e0a0-0000-7000-8000-0000000000f1',
+  isGuest: true,
+  email: null,
+  guestExpiresAt: '2026-12-02T12:00:00Z',
+} satisfies Me
 
 export const acme = {
   id: '0199e0a0-0000-7000-8000-000000000001',

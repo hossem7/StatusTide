@@ -40,6 +40,16 @@ export interface Dashboard {
   vendors: VendorCard[]
 }
 
+// Mirrors MeDto in StatusTide.Api/Features/Users/MeQuery.cs.
+
+export interface Me {
+  id: string
+  isGuest: boolean
+  email: string | null
+  /** When a guest is deleted if they don't come back. Null for accounts. */
+  guestExpiresAt: string | null
+}
+
 // Mirrors DemoOutageDto in StatusTide.Api/Features/Demo/DemoController.cs.
 
 /**
