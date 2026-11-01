@@ -16,7 +16,7 @@ public class StartGuestCommand(StatusTideDbContext db, IConfiguration configurat
     public async Task<(User Guest, string Token)> ExecuteAsync(CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
-        var (token, hash) = GuestToken.Create();
+        var (token, hash) = SecureToken.Create();
         var guest = new User { IsGuest = true, GuestTokenHash = hash, CreatedAt = now, LastSeenAt = now };
         db.Users.Add(guest);
 

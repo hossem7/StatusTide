@@ -4,8 +4,7 @@ namespace StatusTide.Api.Features.Users;
 
 /// <summary>
 /// Who is calling. The user id lives in the standard NameIdentifier claim, which is also what
-/// SignalR uses to route messages to one user. The guest cookie sets it today, and accounts
-/// (#10) will set it too.
+/// SignalR uses to route messages to one user. Both the guest cookie and account JWTs set it.
 /// </summary>
 public static class UserClaims
 {

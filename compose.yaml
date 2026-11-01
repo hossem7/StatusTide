@@ -91,6 +91,7 @@ services:
     environment:
       <<: *app-environment
       Database__MigrateOnStartup: "true"
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Copy .env.example to .env}
     ports:
       - 127.0.0.1:5080:8080
     depends_on: *app-depends-on
@@ -110,7 +111,10 @@ services:
       context: .
       dockerfile: StatusTide.Subscriber/Dockerfile
     image: statustide-subscriber:local
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      App__BaseUrl: http://localhost:8080
+      Email__SmtpHost: mailpit
     depends_on: *app-depends-on
     restart: unless-stopped
 

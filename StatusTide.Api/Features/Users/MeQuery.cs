@@ -16,8 +16,9 @@ public class MeQuery(StatusTideDbContext db)
 }
 
 /// <param name="GuestExpiresAt">When a guest is deleted if they don't come back. Null for accounts.</param>
-public record MeDto(Guid Id, bool IsGuest, string? Email, DateTimeOffset? GuestExpiresAt)
+/// <param name="EmailConfirmed">Whether the account's email is confirmed. Always false for guests.</param>
+public record MeDto(Guid Id, bool IsGuest, string? Email, DateTimeOffset? GuestExpiresAt, bool EmailConfirmed)
 {
     public static MeDto From(User user) =>
-        new(user.Id, user.IsGuest, user.Email, user.IsGuest ? user.LastSeenAt + GuestPolicy.Lifetime : null);
+        new(user.Id, user.IsGuest, user.Email, user.IsGuest ? user.LastSeenAt + GuestPolicy.Lifetime : null, user.EmailConfirmedAt is not null);
 }

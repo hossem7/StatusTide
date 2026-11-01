@@ -288,6 +288,59 @@ namespace StatusTide.Data.Migrations
                     b.ToTable("incident_events", (string)null);
                 });
 
+            modelBuilder.Entity("StatusTide.Data.Users.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<DateTimeOffset?>("ReplacedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("replaced_at");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea")
+                        .HasColumnName("token_hash");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refresh_tokens");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_refresh_tokens_family_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refresh_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_refresh_tokens_user_id");
+
+                    b.ToTable("refresh_tokens", (string)null);
+                });
+
             modelBuilder.Entity("StatusTide.Data.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -304,6 +357,19 @@ namespace StatusTide.Data.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
+                    b.Property<byte[]>("EmailConfirmationHash")
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea")
+                        .HasColumnName("email_confirmation_hash");
+
+                    b.Property<DateTimeOffset?>("EmailConfirmationSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_confirmation_sent_at");
+
+                    b.Property<DateTimeOffset?>("EmailConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_confirmed_at");
+
                     b.Property<byte[]>("GuestTokenHash")
                         .HasMaxLength(32)
                         .HasColumnType("bytea")
@@ -317,12 +383,22 @@ namespace StatusTide.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_seen_at");
 
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("password_hash");
+
                     b.HasKey("Id")
                         .HasName("pk_users");
 
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("EmailConfirmationHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email_confirmation_hash")
+                        .HasFilter("email_confirmation_hash IS NOT NULL");
 
                     b.HasIndex("GuestTokenHash")
                         .IsUnique()
@@ -704,6 +780,18 @@ namespace StatusTide.Data.Migrations
                         .HasConstraintName("fk_incident_events_incidents_incident_id");
 
                     b.Navigation("Incident");
+                });
+
+            modelBuilder.Entity("StatusTide.Data.Users.RefreshToken", b =>
+                {
+                    b.HasOne("StatusTide.Data.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("StatusTide.Data.Vendors.Component", b =>

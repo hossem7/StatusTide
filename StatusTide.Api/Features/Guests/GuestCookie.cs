@@ -21,4 +21,8 @@ public static class GuestCookie
             Expires = now + GuestPolicy.Lifetime,
             IsEssential = true,
         });
+
+    /// <summary>Browsers ignore the removal of a __Host- cookie unless it is Secure with Path=/.</summary>
+    public static void Delete(HttpResponse response) =>
+        response.Cookies.Delete(Name, new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax, Path = "/", IsEssential = true });
 }

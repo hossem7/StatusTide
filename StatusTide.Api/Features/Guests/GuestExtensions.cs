@@ -13,8 +13,8 @@ public static class GuestExtensions
     public const int SessionsPerHour = 10;
 
     /// <summary>
-    /// Registers guest sign-in as the default authentication scheme, and a per-address limit on
-    /// starting sessions, since every session is a database row. Accounts (#10) add JWT next to it.
+    /// Registers guest sign-in, and a per-address limit on starting sessions, since every session
+    /// is a database row. Accounts add JWT next to it and choose between the two per request.
     /// </summary>
     public static IServiceCollection AddGuests(this IServiceCollection services)
     {
