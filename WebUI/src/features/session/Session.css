@@ -32,6 +32,91 @@
   color: var(--status-outage);
 }
 
+.guest-prompt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.account-form {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 56px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-form h1 {
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.account-form p {
+  margin: 0;
+}
+
+.account-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-control);
+}
+
+.account-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.account-form input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.account-form__note {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.account-form__error {
+  color: var(--status-outage);
+}
+
+.account-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.account-form__link {
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+.account-form__switch {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-strong);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .guest-banner {
   display: flex;
   flex-wrap: wrap;
@@ -56,6 +141,10 @@
 
   .guest-prompt h1 {
     font-size: 36px;
+  }
+
+  .account-form {
+    padding: 32px 16px;
   }
 
   .guest-banner p {

@@ -49,6 +49,28 @@
   font-weight: 600;
 }
 
+.app-header__button {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.app-header__button:hover {
+  background: var(--bg-muted);
+}
+
+.app-header__email {
+  margin-left: 8px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .app-header__badge {
   margin-left: 8px;
   padding: 4px 10px;

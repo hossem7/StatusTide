@@ -19,15 +19,24 @@ export interface UseSession {
   retry: () => void
   /** For screens that get a 401 later on, when the guest was deleted or the cookie is gone. */
   markSignedOut: () => void
+  /** For the sign-up and sign-in form, once the server has accepted it. */
+  signedIn: (me: Me) => void
+  /** Ends an account's sign-in. A guest cookie still in this browser takes over, if there is one. */
+  signOut: () => void
 }
 
 interface Options {
   load?: (signal: AbortSignal) => Promise<Me>
   start?: () => Promise<Me>
+  logout?: () => Promise<void>
 }
 
 /** Who is using the app. Screens that need a user only render once this is ready. */
-export function useSession({ load = api.getMe, start = api.startGuest }: Options = {}): UseSession {
+export function useSession({
+  load = api.restoreSession,
+  start = api.startGuest,
+  logout = api.logout,
+}: Options = {}): UseSession {
   const [state, setState] = useState<SessionState>({ kind: 'loading' })
   const [starting, setStarting] = useState(false)
   const [startError, setStartError] = useState('')
@@ -72,5 +81,15 @@ export function useSession({ load = api.getMe, start = api.startGuest }: Options
 
   const markSignedOut = useCallback(() => setState({ kind: 'signedOut' }), [])
 
-  return { state, starting, startError, startGuest, retry, markSignedOut }
+  const signedIn = useCallback((me: Me) => setState({ kind: 'ready', me }), [])
+
+  const signOut = useCallback(() => {
+    setState({ kind: 'loading' })
+    // A failed request still forgets the token here, so asking the server again is right either way.
+    logout()
+      .catch(() => {})
+      .finally(reload)
+  }, [logout, reload])
+
+  return { state, starting, startError, startGuest, retry, markSignedOut, signedIn, signOut }
 }

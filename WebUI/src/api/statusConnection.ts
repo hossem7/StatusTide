@@ -1,4 +1,5 @@
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
+import { api } from './client'
 import type { VendorCard } from './types'
 
 /**
@@ -20,7 +21,8 @@ export const VendorUpdated = 'vendorUpdated'
 
 export function createStatusConnection(): StatusConnection {
   const connection = new HubConnectionBuilder()
-    .withUrl('/hubs/status')
+    // Asked on every connect and reconnect, so a reconnect after a guest signs up uses the new token.
+    .withUrl('/hubs/status', { accessTokenFactory: api.getHubToken })
     // Retries after 0, 2, 10 and 30 seconds, then gives up and calls onClose.
     .withAutomaticReconnect()
     .configureLogging(LogLevel.Warning)

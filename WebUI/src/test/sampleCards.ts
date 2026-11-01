@@ -8,6 +8,15 @@ export const guest = {
   isGuest: true,
   email: null,
   guestExpiresAt: '2026-12-02T12:00:00Z',
+  emailConfirmed: false,
+} satisfies Me
+
+export const account = {
+  id: '0199e0a0-0000-7000-8000-0000000000f2',
+  isGuest: false,
+  email: 'someone@acme.example',
+  guestExpiresAt: null,
+  emailConfirmed: true,
 } satisfies Me
 
 export const acme = {

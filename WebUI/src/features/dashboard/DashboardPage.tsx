@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { ApiError } from '../../api/client'
+import { EmailBanner } from '../session/EmailBanner'
 import { GuestBanner } from '../session/GuestBanner'
 import { LiveIndicator } from './LiveIndicator'
 import { OutageBanner } from './OutageBanner'
@@ -10,7 +11,15 @@ import { useNow } from './useNow'
 import { VendorCardView } from './VendorCardView'
 import './Dashboard.css'
 
-export function DashboardPage({ isGuest, onSignedOut }: { isGuest: boolean; onSignedOut: () => void }) {
+interface PageProps {
+  isGuest: boolean
+  /** Set for an account whose email isn't confirmed yet. */
+  unconfirmedEmail?: string | null
+  onSignedOut: () => void
+  onCreateAccount?: () => void
+}
+
+export function DashboardPage({ isGuest, unconfirmedEmail, onSignedOut, onCreateAccount }: PageProps) {
   const dashboard = useDashboard()
   const now = useNow(5_000)
   const demoCard = dashboard.state.kind === 'ready' ? dashboard.state.vendors.find((v) => v.isDemo) : undefined
@@ -21,7 +30,16 @@ export function DashboardPage({ isGuest, onSignedOut }: { isGuest: boolean; onSi
     if (signedOut) onSignedOut()
   }, [signedOut, onSignedOut])
 
-  return <DashboardView {...dashboard} now={now} demo={demo} isGuest={isGuest} />
+  return (
+    <DashboardView
+      {...dashboard}
+      now={now}
+      demo={demo}
+      isGuest={isGuest}
+      unconfirmedEmail={unconfirmedEmail}
+      onCreateAccount={onCreateAccount}
+    />
+  )
 }
 
 function isUnauthorized(error: unknown): boolean {
@@ -37,10 +55,19 @@ export function DashboardView({
   now,
   demo,
   isGuest = false,
-}: UseDashboard & { now: number; demo?: UseDemoOutage; isGuest?: boolean }) {
+  unconfirmedEmail,
+  onCreateAccount,
+}: UseDashboard & {
+  now: number
+  demo?: UseDemoOutage
+  isGuest?: boolean
+  unconfirmedEmail?: string | null
+  onCreateAccount?: () => void
+}) {
   return (
     <main className="dashboard">
-      {isGuest && <GuestBanner />}
+      {isGuest && <GuestBanner onCreateAccount={onCreateAccount} />}
+      {unconfirmedEmail && <EmailBanner email={unconfirmedEmail} />}
       {state.kind === 'ready' && <OutageBanner vendors={state.vendors} />}
 
       <div className="dashboard__top">
