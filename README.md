@@ -73,7 +73,7 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 
 **The server fetches URLs, so SSRF is designed in.** Account holders can add their own status page by URL, which means the server will fetch addresses users give it. Only http and https on ports 80 and 443 are allowed, DNS is resolved and private, loopback and link-local ranges are blocked (including the cloud metadata address 169.254.169.254), and every redirect is checked again. The EC2 instance also requires IMDSv2. Webhook URLs are limited to official Slack and Discord domains.
 
-**Sized to run for about $21 a month.** Production is one EC2 t3.small (2 GB of memory) running k3s. That budget ruled out SQL Server, Elasticsearch and a managed RDS database, so PostgreSQL runs in the cluster with daily backups to S3. CPU credits are set to "standard" so a traffic spike slows the server down instead of adding to the bill, and an AWS spend limit sits on top. No AWS access keys exist anywhere; the instance's IAM role grants access to S3, SES, Bedrock and CloudWatch.
+**Sized to run for about $21 a month.** Production is one EC2 t3.small (2 GB of memory) running k3s, defined in Terraform so it can be torn down and rebuilt in one command. That budget ruled out SQL Server, Elasticsearch and a managed RDS database, so PostgreSQL runs in the cluster with daily backups to S3. CPU credits are set to "standard" so a traffic spike slows the server down instead of adding to the bill, and an AWS spend limit sits on top. No AWS access keys exist anywhere; the instance's IAM role grants access to S3, SES, Bedrock and CloudWatch.
 
 ## Tech stack
 
@@ -86,7 +86,7 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 | Data | PostgreSQL with EF Core migrations, Redis for locks, fingerprints, caching and rate limits |
 | AI | Amazon Nova Lite on Bedrock |
 | Alerts | Amazon SES, Slack and Discord webhooks |
-| Infrastructure | Docker, k3s on EC2, CloudFront, Route 53, ACM |
+| Infrastructure | Docker, k3s on EC2, CloudFront, Route 53, ACM, all defined in Terraform |
 | Logging | Serilog to CloudWatch Logs, with correlation IDs from the API through the workers |
 | Testing and CI | xUnit, Testcontainers, Playwright, GitHub Actions |
 
@@ -101,7 +101,7 @@ Each milestone ends with something that runs and can be demonstrated.
 | [M3: Core app](https://github.com/hossem7/StatusTide/milestone/3) | Live dashboard, demo vendor, guest mode, accounts, catalog, rate limits |
 | [M4: Checks, readers and AI](https://github.com/hossem7/StatusTide/milestone/4) | Our own checks, incident page, more readers, custom status pages, AI summaries |
 | [M5: Alerts and vendor vetting](https://github.com/hossem7/StatusTide/milestone/5) | Email and webhook alerts, format and terms review for every catalog vendor |
-| [M6: Launch](https://github.com/hossem7/StatusTide/milestone/6) | AWS deployment, final documentation and a demo video |
+| [M6: Launch](https://github.com/hossem7/StatusTide/milestone/6) | Terraform for all AWS infrastructure, AWS deployment, final documentation and a demo video |
 
 ## Running it locally
 
