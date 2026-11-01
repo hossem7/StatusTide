@@ -29,6 +29,7 @@ public static class AcmeCloudSeed
             Id = VendorId,
             Slug = "acme-cloud",
             Name = "Acme Cloud (demo)",
+            Category = VendorCategory.Cloud,
             FeedUrl = "demo://acme-cloud",
             StatusPageUrl = "/vendors/acme-cloud",
             Format = FeedFormat.Demo,
