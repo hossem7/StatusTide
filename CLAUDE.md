@@ -23,7 +23,7 @@ docker compose up -d postgres redis rabbitmq storage mailpit   # infrastructure 
 kubectl kustomize k8s/local           # render the k3d manifests (full k3d steps in README)
 ```
 
-Infrastructure lives in `compose.yaml` and `k8s/`. `k8s/base` is shared with production k3s, so keep local-only changes in `k8s/local`. Secrets come from `.env` (Compose) or the `statustide-secrets` secret (Kubernetes), never from files in the repo.
+Infrastructure lives in `compose.yaml` and `k8s/`, and AWS resources are defined in Terraform in `infra/` (never created by hand in the console). `k8s/base` is shared with production k3s, so keep local-only changes in `k8s/local`. Secrets come from `.env` (Compose) or the `statustide-secrets` secret (Kubernetes), never from files in the repo.
 
 CI (`.github/workflows/ci.yml`) runs the same build, test, lint and build steps, then builds a Docker image for each app. Run them locally before opening a PR.
 
