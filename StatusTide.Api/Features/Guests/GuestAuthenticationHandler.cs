@@ -29,7 +29,7 @@ public class GuestAuthenticationHandler(
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var token = Request.Cookies[GuestCookie.Name];
-        if (GuestToken.Hash(token) is not { } hash)
+        if (SecureToken.Hash(token) is not { } hash)
         {
             return AuthenticateResult.NoResult();
         }

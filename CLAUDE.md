@@ -50,7 +50,8 @@ Rules:
 - **Separate writes from reads (light CQRS).** Commands enforce rules and change state. Queries change nothing, use `AsNoTracking`, and return DTOs shaped for the screen. One PostgreSQL database; no separate read store or event sourcing.
 - **Schema changes go through migrations.** Snake_case names come from the naming convention, and enums are stored as text. Only the API applies migrations on startup (`Database:MigrateOnStartup`, on in development and the local stacks). Seed data uses fixed ids and dates; a test fails if the model and migrations drift apart.
 - **Consumers must be idempotent.** MassTransit retries a failing message 5 times (exponential backoff, 1 to 30 s, see `MessagingDefaults`), then moves it to the `_error` queue. A message can arrive more than once.
-- **Interfaces only where an implementation really swaps**: `IStatusReader` (one per feed format), `IIncidentSummarizer` (Bedrock or fake), `IAlertSender` (SES, Mailpit, webhooks). Do not add an interface for a class with one implementation.
+- **Interfaces only where an implementation really swaps**: `IStatusReader` (one per feed format), `IIncidentSummarizer` (Bedrock or fake), `IAlertSender` (SES, Mailpit, webhooks), `IEmailSender` (Mailpit over SMTP, SES in production). Do not add an interface for a class with one implementation.
+- **Sign-in is chosen per request.** A request with a JWT is judged by that JWT alone; anything else uses the guest cookie. Read the caller with `User.UserId()`, and scope every query on user-owned data to that id.
 - **API endpoints are controllers** (`[ApiController]`), not minimal APIs.
 - **Frontend**: feature folders under `WebUI/src/features/`, small components, server data through one typed API client. Never use `dangerouslySetInnerHTML`.
 
@@ -60,6 +61,7 @@ Rules:
 - **No real vendor polling in development or tests.** Use the sample responses in `tests/fixtures` and the demo vendor (Acme Cloud). Fixtures are written by hand in the documented format, never copied from a real vendor, since real responses carry update text we must not store. Only vendors approved through the verification process in the plan go live.
 - **Store and show facts only**: statuses, component names, incident titles, timestamps and source links. Never store or display a vendor's written update text. AI summaries use only those facts plus our own check data.
 - **Treat every fetched URL and every incident title as untrusted.** URLs go through the SSRF guard (http/https, ports 80 and 443, no private, loopback or link-local addresses, every redirect re-checked). Incident titles are wrapped as data in AI prompts.
+- **Never store a token we can be asked to check.** Guest cookies, refresh tokens and email links are `SecureToken`s, saved only as a hash. No token goes in a message or a log.
 - **No secrets in the repo and no AWS access keys anywhere.** Production uses the EC2 IAM role. Local values live in `appsettings.Development.json` (fake development credentials only) or `.env`, never committed.
 - **Commits and PRs are authored by the person making the change.** No AI co-author trailers and no "Generated with" lines in commits or PR descriptions, whoever opens the PR. When you take over someone else's work, keep their commits under their name and add yours on top.
 

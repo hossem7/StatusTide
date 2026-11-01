@@ -11,6 +11,7 @@ using StatusTide.Api.Features.Guests;
 using StatusTide.Api.Features.Users;
 using StatusTide.Data;
 using StatusTide.Data.Seed;
+using StatusTide.Data.Users;
 
 namespace StatusTide.IntegrationTests.Guests;
 
@@ -66,7 +67,7 @@ public sealed class GuestSessionTests : IAsyncDisposable
 
         Assert.True(guest.IsGuest);
         Assert.Equal(32, guest.GuestTokenHash!.Length);
-        Assert.Equal(GuestToken.Hash(token), guest.GuestTokenHash);
+        Assert.Equal(SecureToken.Hash(token), guest.GuestTokenHash);
     }
 
     [Fact]

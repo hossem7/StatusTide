@@ -17,6 +17,7 @@ namespace StatusTide.Data;
 public class StatusTideDbContext(DbContextOptions<StatusTideDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Vendor> Vendors => Set<Vendor>();
     public DbSet<Component> Components => Set<Component>();
     public DbSet<VendorVerification> VendorVerifications => Set<VendorVerification>();

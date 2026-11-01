@@ -69,6 +69,11 @@ spec:
                 secretKeyRef:
                   name: statustide-secrets
                   key: RABBITMQ_PASSWORD
+            - name: Jwt__SigningKey
+              valueFrom:
+                secretKeyRef:
+                  name: statustide-secrets
+                  key: JWT_SIGNING_KEY
             - name: ConnectionStrings__Postgres
               value: Host=postgres;Port=5432;Database=statustide;Username=statustide;Password=$(POSTGRES_PASSWORD)
             - name: ConnectionStrings__Redis

@@ -20,6 +20,19 @@ public class User
     /// leak can't be used to sign in as a guest. Null for accounts.
     /// </summary>
     public byte[]? GuestTokenHash { get; set; }
+
+    /// <summary>Hash and salt from ASP.NET Core Identity's password hasher. Null for guests.</summary>
+    public string? PasswordHash { get; set; }
+
+    /// <summary>Null until the email is confirmed. Alerts only go to confirmed addresses.</summary>
+    public DateTimeOffset? EmailConfirmedAt { get; set; }
+
+    /// <summary>SHA-256 of the token in the latest confirmation link.</summary>
+    public byte[]? EmailConfirmationHash { get; set; }
+
+    /// <summary>When the latest confirmation email was sent. The link expires relative to this.</summary>
+    public DateTimeOffset? EmailConfirmationSentAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>Renewed on each visit. Guests inactive for 30 days are deleted.</summary>

@@ -16,5 +16,21 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 
         // The guest cleanup job only looks for old guests, so accounts stay out of the index.
         user.HasIndex(u => u.LastSeenAt).HasFilter("is_guest");
+
+        user.Property(u => u.PasswordHash).HasMaxLength(256);
+        user.Property(u => u.EmailConfirmationHash).HasMaxLength(32);
+        user.HasIndex(u => u.EmailConfirmationHash).IsUnique().HasFilter("email_confirmation_hash IS NOT NULL");
+    }
+}
+
+internal class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+{
+    public void Configure(EntityTypeBuilder<RefreshToken> token)
+    {
+        token.Property(t => t.TokenHash).HasMaxLength(32);
+        token.HasIndex(t => t.TokenHash).IsUnique();
+        token.HasIndex(t => t.FamilyId);
+        token.HasIndex(t => t.UserId);
+        token.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }

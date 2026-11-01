@@ -1,13 +1,13 @@
 using System.Buffers.Text;
 using System.Security.Cryptography;
 
-namespace StatusTide.Api.Features.Guests;
+namespace StatusTide.Data.Users;
 
 /// <summary>
-/// The secret in a guest's cookie: 32 random bytes. Only its SHA-256 hash is stored, so the
+/// A secret we hand out and later check, such as a guest cookie, a refresh token or an email confirmation link: 32 random bytes. Only its SHA-256 hash is stored, so the
 /// lookup needs no salt (the token is already random) and a leaked database signs nobody in.
 /// </summary>
-public static class GuestToken
+public static class SecureToken
 {
     public static (string Token, byte[] Hash) Create()
     {
@@ -15,7 +15,7 @@ public static class GuestToken
         return (Base64Url.EncodeToString(bytes), SHA256.HashData(bytes));
     }
 
-    /// <summary>The hash of a cookie value, or null when it isn't a token we could have made.</summary>
+    /// <summary>The hash of a presented token, or null when it isn't a token we could have made.</summary>
     public static byte[]? Hash(string? token)
     {
         if (string.IsNullOrEmpty(token) || token.Length > 64)
