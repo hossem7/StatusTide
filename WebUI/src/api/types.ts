@@ -48,6 +48,16 @@ export interface Me {
   email: string | null
   /** When a guest is deleted if they don't come back. Null for accounts. */
   guestExpiresAt: string | null
+  /** Whether the account's email is confirmed. Always false for guests. */
+  emailConfirmed: boolean
+}
+
+// Mirrors AuthResponse in StatusTide.Api/Features/Accounts/AuthController.cs.
+
+export interface AuthResponse {
+  accessToken: string
+  expiresAt: string
+  user: Me
 }
 
 // Mirrors DemoOutageDto in StatusTide.Api/Features/Demo/DemoController.cs.

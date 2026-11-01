@@ -1,7 +1,19 @@
 import './AppHeader.css'
 
 /** The app bar. Links to pages that don't exist yet (Add services) arrive with those pages. */
-export function AppHeader({ isGuest }: { isGuest: boolean }) {
+export function AppHeader({
+  isGuest,
+  email,
+  onSignIn,
+  onSignOut,
+}: {
+  isGuest: boolean
+  /** The account's address. Shown with a sign-out button when set. */
+  email?: string | null
+  /** Shows a sign-in button when set. */
+  onSignIn?: () => void
+  onSignOut?: () => void
+}) {
   return (
     <header className="app-header">
       <div className="app-header__inner">
@@ -22,6 +34,17 @@ export function AppHeader({ isGuest }: { isGuest: boolean }) {
             Dashboard
           </a>
           {isGuest && <span className="app-header__badge">Guest</span>}
+          {onSignIn && (
+            <button type="button" className="app-header__link app-header__button" onClick={onSignIn}>
+              Sign in
+            </button>
+          )}
+          {email && <span className="app-header__email">{email}</span>}
+          {email && onSignOut && (
+            <button type="button" className="app-header__link app-header__button" onClick={onSignOut}>
+              Sign out
+            </button>
+          )}
         </nav>
       </div>
     </header>
