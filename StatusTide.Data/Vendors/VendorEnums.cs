@@ -10,6 +10,16 @@ public enum FeedFormat
     Demo,
 }
 
+/// <summary>The catalog screen's filters.</summary>
+public enum VendorCategory
+{
+    DeveloperTools,
+    Cloud,
+    Payments,
+    Ai,
+    Communication,
+}
+
 /// <summary>
 /// Component status, using Statuspage's levels since most feeds map onto them.
 /// Unknown means we could not read the feed, for example after a 429 or a timeout.

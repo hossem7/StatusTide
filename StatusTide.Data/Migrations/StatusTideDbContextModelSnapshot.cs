@@ -500,6 +500,11 @@ namespace StatusTide.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Category")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("category");
+
                     b.Property<string>("CheckUrl")
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)")
@@ -580,6 +585,7 @@ namespace StatusTide.Data.Migrations
                         new
                         {
                             Id = new Guid("0199f0a0-0000-7000-8000-00000000ac01"),
+                            Category = "Cloud",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FeedUrl = "demo://acme-cloud",
                             Format = "Demo",
