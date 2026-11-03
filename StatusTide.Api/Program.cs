@@ -1,7 +1,9 @@
 using Serilog;
 using StatusTide.Api.Features.Accounts;
+using StatusTide.Api.Features.Catalog;
 using StatusTide.Api.Features.Dashboard;
 using StatusTide.Api.Features.Demo;
+using StatusTide.Api.Features.Follows;
 using StatusTide.Api.Features.Guests;
 using StatusTide.Api.Features.RequestLogging;
 using StatusTide.Api.Features.Users;
@@ -25,6 +27,8 @@ builder.Services.AddDashboard();
 builder.Services.AddGuests();
 builder.Services.AddAccounts(builder.Configuration);
 builder.Services.AddScoped<MeQuery>();
+builder.Services.AddScoped<CatalogQuery>();
+builder.Services.AddScoped<SetFollowsCommand>();
 builder.Services.AddControllers().AddJsonOptions(json => DashboardExtensions.ConfigureJson(json.JsonSerializerOptions));
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();

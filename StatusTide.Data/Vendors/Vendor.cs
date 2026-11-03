@@ -13,6 +13,9 @@ public class Vendor
 
     public required string Name { get; set; }
 
+    /// <summary>The catalog filter this vendor appears under. Null for custom pages.</summary>
+    public VendorCategory? Category { get; set; }
+
     /// <summary>The machine-readable source we poll (Statuspage JSON, RSS or Atom).</summary>
     public required string FeedUrl { get; set; }
 
