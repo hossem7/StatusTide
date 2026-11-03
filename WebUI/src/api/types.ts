@@ -60,6 +60,45 @@ export interface AuthResponse {
   user: Me
 }
 
+// Mirrors the DTOs in StatusTide.Api/Features/Catalog/CatalogQuery.cs.
+
+export type VendorCategory = 'developerTools' | 'cloud' | 'payments' | 'ai' | 'communication'
+
+export interface CatalogQuery {
+  search: string
+  category: VendorCategory | null
+}
+
+export interface CatalogVendor {
+  id: string
+  slug: string
+  name: string
+  category: VendorCategory | null
+  /** Not always a web address: check it with externalUrl before linking to it. */
+  statusPageUrl: string
+  componentCount: number
+  /** Zero means the user doesn't follow this vendor. */
+  followedComponentCount: number
+}
+
+export interface Catalog {
+  vendors: CatalogVendor[]
+}
+
+export interface CatalogComponent {
+  id: string
+  name: string
+  status: ComponentStatus
+  followed: boolean
+}
+
+export interface CatalogVendorDetail {
+  id: string
+  name: string
+  statusPageUrl: string
+  components: CatalogComponent[]
+}
+
 // Mirrors DemoOutageDto in StatusTide.Api/Features/Demo/DemoController.cs.
 
 /**

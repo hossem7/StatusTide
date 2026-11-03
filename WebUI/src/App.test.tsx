@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAccess } from './api/client'
@@ -184,6 +184,107 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: 'Try it as a guest' })).toBeInTheDocument()
     const [, init] = fetchMock.mock.calls.findLast(([path]) => path === '/api/me')!
     expect(init?.headers).not.toHaveProperty('Authorization')
+  })
+
+  describe('Add services', () => {
+    const catalog = () =>
+      Response.json({
+        vendors: [
+          {
+            id: acme.id,
+            slug: acme.slug,
+            name: acme.name,
+            category: 'cloud',
+            statusPageUrl: '/vendors/acme-cloud',
+            componentCount: 4,
+            followedComponentCount: 4,
+          },
+        ],
+      })
+    const routes = {
+      'GET /api/me': () => Response.json(guest),
+      'GET /api/dashboard': dashboard,
+      'GET /api/demo/outage': noOutage,
+      'GET /api/catalog': catalog,
+    }
+
+    it('moves between the dashboard and the catalog without a page load, and back again', async () => {
+      const fetchMock = stubApi(routes)
+      render(<App />)
+      await screen.findByRole('article', { name: 'Acme Cloud (demo)' })
+
+      const nav = screen.getByRole('navigation', { name: 'Main' })
+      await userEvent.click(within(nav).getByRole('link', { name: 'Add services' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Add services' })).toBeInTheDocument()
+      expect(window.location.pathname).toBe('/catalog')
+      expect(within(nav).getByRole('link', { name: 'Add services' })).toHaveAttribute('aria-current', 'page')
+      expect(within(nav).getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current')
+      await waitFor(() => expect((connections as FakeConnection[])[0].stopped).toBe(1))
+
+      window.history.back()
+
+      // The dashboard loads a new snapshot, so a follow made on the catalog screen shows up.
+      expect(await screen.findByRole('article', { name: 'Acme Cloud (demo)' })).toBeInTheDocument()
+      expect(fetchMock.mock.calls.filter(([path]) => path === '/api/dashboard')).toHaveLength(2)
+      expect(fetchMock.mock.calls.filter(([path]) => path === '/api/me')).toHaveLength(1)
+    })
+
+    it('opens the catalog directly from its address', async () => {
+      window.history.replaceState(null, '', '/catalog')
+      stubApi(routes)
+      render(<App />)
+
+      expect(await screen.findByRole('button', { name: /^Following Acme/ })).toBeInTheDocument()
+      expect(connections).toHaveLength(0)
+    })
+
+    it('reaches the catalog from the button on the dashboard', async () => {
+      stubApi(routes)
+      render(<App />)
+
+      await userEvent.click(await screen.findByRole('link', { name: '+ Add services' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Add services' })).toBeInTheDocument()
+    })
+
+    it('asks a visitor with no session to start one, then shows the catalog', async () => {
+      window.history.replaceState(null, '', '/catalog')
+      stubApi({ ...routes, 'GET /api/me': unauthorized, 'POST /api/guest': () => Response.json(guest, { status: 201 }) })
+      render(<App />)
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Try it as a guest' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Add services' })).toBeInTheDocument()
+    })
+
+    it('hides the link until there is a session', async () => {
+      stubApi({ 'GET /api/me': unauthorized })
+      render(<App />)
+
+      await screen.findByRole('button', { name: 'Try it as a guest' })
+
+      expect(screen.queryByRole('link', { name: 'Add services' })).toBeNull()
+    })
+
+    it('goes back to the guest prompt when the catalog says the session is gone', async () => {
+      window.history.replaceState(null, '', '/catalog')
+      stubApi({ ...routes, 'GET /api/catalog': unauthorized })
+      render(<App />)
+
+      expect(await screen.findByRole('button', { name: 'Try it as a guest' })).toBeInTheDocument()
+    })
+
+    it('closes the account form when a header link is clicked', async () => {
+      stubApi(routes)
+      render(<App />)
+      await userEvent.click(await screen.findByRole('button', { name: 'Sign in' }))
+
+      await userEvent.click(screen.getByRole('link', { name: 'Add services' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Add services' })).toBeInTheDocument()
+      expect(screen.queryByLabelText('Password')).toBeNull()
+    })
   })
 
   it('shows the confirm page for an emailed link without looking for a session', async () => {

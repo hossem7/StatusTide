@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { ApiError } from '../../api/client'
+import { AppLink } from '../../components/AppLink'
+import { catalogPath } from '../catalog/catalogLabels'
 import { EmailBanner } from '../session/EmailBanner'
 import { GuestBanner } from '../session/GuestBanner'
 import { LiveIndicator } from './LiveIndicator'
@@ -75,6 +77,9 @@ export function DashboardView({
           <h1>Your services</h1>
           {state.kind === 'ready' && <LiveIndicator live={live} onRetry={retry} />}
         </div>
+        <AppLink href={catalogPath} className="button dashboard__add">
+          + Add services
+        </AppLink>
       </div>
 
       {/* Announces live changes, such as "Acme Cloud (demo): Major outage", to screen readers. */}

@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { Me } from './api/types'
 import { AppHeader } from './components/AppHeader'
+import { usePath } from './components/navigation'
+import { catalogPath } from './features/catalog/catalogLabels'
+import { CatalogPage } from './features/catalog/CatalogPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import { AccountForm, type AccountFormMode } from './features/session/AccountForm'
 import { ConfirmEmailPage, confirmEmailPath } from './features/session/ConfirmEmailPage'
@@ -8,8 +11,9 @@ import { GuestPrompt } from './features/session/GuestPrompt'
 import { useSession, type UseSession } from './features/session/useSession'
 
 function App() {
+  const path = usePath()
   // The emailed link works for anyone holding it, so it doesn't wait for a session.
-  if (window.location.pathname === confirmEmailPath) {
+  if (path === confirmEmailPath) {
     return (
       <>
         <AppHeader isGuest={false} />
@@ -17,10 +21,10 @@ function App() {
       </>
     )
   }
-  return <SignedInApp />
+  return <SignedInApp path={path} />
 }
 
-function SignedInApp() {
+function SignedInApp({ path }: { path: string }) {
   const session = useSession()
   const [form, setForm] = useState<AccountFormMode | null>(null)
   const { state } = session
@@ -32,6 +36,8 @@ function SignedInApp() {
       <AppHeader
         isGuest={me?.isGuest === true}
         email={me?.isGuest ? null : me?.email}
+        hasSession={me !== null}
+        onNavigate={() => setForm(null)}
         onSignIn={canSignIn && form === null ? () => setForm('signIn') : undefined}
         onSignOut={session.signOut}
       />
@@ -47,13 +53,13 @@ function SignedInApp() {
           onSwitch={setForm}
         />
       ) : (
-        <Screen session={session} onCreateAccount={() => setForm('signUp')} />
+        <Screen session={session} path={path} onCreateAccount={() => setForm('signUp')} />
       )}
     </>
   )
 }
 
-function Screen({ session, onCreateAccount }: { session: UseSession; onCreateAccount: () => void }) {
+function Screen({ session, path, onCreateAccount }: { session: UseSession; path: string; onCreateAccount: () => void }) {
   const { state, retry, markSignedOut } = session
   switch (state.kind) {
     case 'loading':
@@ -74,6 +80,16 @@ function Screen({ session, onCreateAccount }: { session: UseSession; onCreateAcc
         </main>
       )
     case 'ready':
+      if (path === catalogPath) {
+        return (
+          <CatalogPage
+            key={state.me.id}
+            isGuest={state.me.isGuest}
+            onSignedOut={markSignedOut}
+            onCreateAccount={onCreateAccount}
+          />
+        )
+      }
       // A different user needs a new connection and a new snapshot, so the id is the key. A guest
       // who signs up keeps their id, and the hub still reaches them by that id.
       return (
