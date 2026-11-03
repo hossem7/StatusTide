@@ -1,4 +1,4 @@
-import type { AuthResponse, Dashboard, DemoOutage, Me } from './types'
+import type { AuthResponse, Catalog, CatalogQuery, CatalogVendorDetail, Dashboard, DemoOutage, Me } from './types'
 
 /** A response other than 2xx. `status` lets screens tell "not signed in" from "server down". */
 export class ApiError extends Error {
@@ -123,4 +123,23 @@ export const api = {
   startDemoOutage: () => request<DemoOutage>('POST', '/api/demo/outage'),
   /** 404 when no outage is running. */
   resolveDemoOutage: () => request<DemoOutage>('DELETE', '/api/demo/outage'),
+  getCatalog: ({ search, category }: CatalogQuery, signal?: AbortSignal) => {
+    const query = new URLSearchParams()
+    if (search) query.set('search', search)
+    if (category) query.set('category', category)
+    const suffix = query.size > 0 ? `?${query}` : ''
+    return request<Catalog>('GET', `/api/catalog${suffix}`, { signal })
+  },
+  /** 404 when the vendor isn't in the catalog. */
+  getCatalogVendor: (vendorId: string, signal?: AbortSignal) =>
+    request<CatalogVendorDetail>('GET', `/api/catalog/${encodeURIComponent(vendorId)}`, { signal }),
+  /**
+   * Follows exactly these components, or all of them when given null. 409 at the follow limit,
+   * 404 when the vendor left the catalog, 400 when a component isn't the vendor's any more.
+   */
+  setFollows: (vendorId: string, componentIds: string[] | null) =>
+    request<CatalogVendorDetail>('PUT', `/api/follows/${encodeURIComponent(vendorId)}`, {
+      body: componentIds === null ? {} : { componentIds },
+    }),
+  unfollow: (vendorId: string) => request<void>('DELETE', `/api/follows/${encodeURIComponent(vendorId)}`),
 }

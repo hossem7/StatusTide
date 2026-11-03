@@ -7,10 +7,22 @@
   gap: 24px;
 }
 
+.dashboard__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .dashboard__top h1 {
   font-size: 30px;
   letter-spacing: -0.02em;
   font-weight: 700;
+}
+
+.dashboard__add {
+  text-decoration: none;
 }
 
 .dashboard__message {
