@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="RedisRateLimiting" />
     <PackageReference Include="Serilog.AspNetCore" />
   </ItemGroup>
 

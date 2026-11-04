@@ -80,6 +80,10 @@ spec:
               value: redis:6379
             - name: ConnectionStrings__RabbitMq
               value: amqp://statustide:$(RABBITMQ_PASSWORD)@rabbitmq:5672/
+            # Requests reach the API through Traefik, which runs in the k3s pod network.
+            # Trust its X-Forwarded-For so rate limits see the client address, not Traefik's.
+            - name: ForwardedHeaders__KnownNetworks__0
+              value: 10.42.0.0/16
           ports:
             - containerPort: 8080
           readinessProbe:

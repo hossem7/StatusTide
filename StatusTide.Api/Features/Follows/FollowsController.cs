@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 using StatusTide.Api.Features.Catalog;
 using StatusTide.Api.Features.Users;
@@ -13,6 +14,7 @@ namespace StatusTide.Api.Features.Follows;
 /// </summary>
 [ApiController]
 [Route("api/follows")]
+[EnableRateLimiting(FollowsExtensions.RateLimitPolicy)]
 public class FollowsController(SetFollowsCommand setFollows, CatalogQuery catalog) : ControllerBase
 {
     /// <summary>Follows exactly the given components, or all of them when none are listed.</summary>

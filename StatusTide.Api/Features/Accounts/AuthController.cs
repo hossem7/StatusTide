@@ -58,14 +58,25 @@ public class AuthController(
     [EnableRateLimiting(AccountsExtensions.RateLimitPolicy)]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        var user = AccountEmail.Normalize(request.Email) is { } email
+        var result = AccountEmail.Normalize(request.Email) is { } email
             ? await signIn.ExecuteAsync(email, request.Password, cancellationToken)
-            : null;
-        return user is null
+            : new SignInResult(null);
+
+        if (result.LockedFor is { } lockedFor)
+        {
+            var minutes = Math.Max(1, (int)Math.Ceiling(lockedFor.TotalMinutes));
+            Response.Headers.RetryAfter = ((int)Math.Ceiling(lockedFor.TotalSeconds)).ToString();
+            return Problem(
+                $"Too many sign-in attempts for this account. Try again in {minutes} min.",
+                statusCode: StatusCodes.Status429TooManyRequests);
+        }
+
+        return result.User is null
             ? Problem("Wrong email or password.", statusCode: StatusCodes.Status401Unauthorized)
-            : Ok(await StartSessionAsync(user, cancellationToken));
+            : Ok(await StartSessionAsync(result.User, cancellationToken));
     }
 
     /// <summary>Swaps the refresh cookie for a new access token, and usually a new cookie.</summary>

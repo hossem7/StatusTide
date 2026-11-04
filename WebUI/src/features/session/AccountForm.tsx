@@ -17,7 +17,7 @@ interface Props {
 
 function errorMessage(mode: AccountFormMode, e: unknown): string {
   if (e instanceof ApiError) {
-    if (e.status === 429) return 'Too many tries from this address. Wait a minute and try again.'
+    if (e.status === 429) return 'Too many tries. Wait a few minutes and try again.'
     if (mode === 'signIn' && e.status === 401) return 'Wrong email or password.'
     if (mode === 'signUp' && e.status === 409) return 'That email already has an account. Sign in instead.'
     if (mode === 'signUp' && e.status === 400) return 'Enter a valid email and a password of at least 10 characters.'
