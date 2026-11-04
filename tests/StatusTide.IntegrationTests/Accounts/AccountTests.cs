@@ -446,17 +446,76 @@ public sealed class AccountTests : IAsyncDisposable
         // A factory of its own, so this test's limit isn't shared with the other tests.
         await using var factory = new ApiFactory(_postgres, "accounts_limit", services => services.AddSingleton(_redis.Connection));
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
-        var attempt = new LoginRequest(NewEmail(), Password);
 
+        // A new email each time, so the per-account lockout doesn't step in first.
         for (var i = 0; i < AccountsExtensions.AttemptsPerMinute; i++)
         {
-            using var allowed = await PostAsync(client, "login", attempt);
+            using var allowed = await PostAsync(client, "login", new LoginRequest(NewEmail(), Password));
             Assert.Equal(HttpStatusCode.Unauthorized, allowed.StatusCode);
         }
 
-        using var limited = await PostAsync(client, "login", attempt);
+        using var limited = await PostAsync(client, "login", new LoginRequest(NewEmail(), Password));
 
         Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
+    }
+
+    [Fact]
+    public async Task Too_many_wrong_passwords_lock_the_account_even_for_the_right_one()
+    {
+        using var client = CreateBrowser();
+        var email = NewEmail();
+        await RegisterAsync(client, email);
+        for (var i = 0; i < SignInLockout.AttemptsPerPeriod; i++)
+        {
+            using var wrong = await PostAsync(client, "login", new LoginRequest(email, "wrong-password-here"));
+            Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+        }
+
+        using var locked = await PostAsync(client, "login", new LoginRequest(email, Password));
+        using var otherAccount = await PostAsync(client, "login", new LoginRequest(NewEmail(), Password));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, locked.StatusCode);
+        var retryAfter = int.Parse(Assert.Single(locked.Headers.GetValues("Retry-After")));
+        Assert.InRange(retryAfter, 1, (int)SignInLockout.Period.TotalSeconds);
+        Assert.Contains("this account", await DetailAsync(locked));
+        Assert.Equal(HttpStatusCode.Unauthorized, otherAccount.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_right_password_clears_the_count_of_wrong_ones()
+    {
+        using var client = CreateBrowser();
+        var email = NewEmail();
+        await RegisterAsync(client, email);
+
+        // Six wrong in all, one more than the lock allows, but never more than three in a row.
+        for (var round = 0; round < 2; round++)
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                using var wrong = await PostAsync(client, "login", new LoginRequest(email, "wrong-password-here"));
+                Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+            }
+
+            using var right = await PostAsync(client, "login", new LoginRequest(email, Password));
+            Assert.Equal(HttpStatusCode.OK, right.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task An_unknown_email_locks_the_same_way_so_it_reveals_nothing()
+    {
+        using var client = CreateBrowser();
+        var attempt = new LoginRequest(NewEmail(), Password);
+        for (var i = 0; i < SignInLockout.AttemptsPerPeriod; i++)
+        {
+            using var wrong = await PostAsync(client, "login", attempt);
+            Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+        }
+
+        using var locked = await PostAsync(client, "login", attempt);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, locked.StatusCode);
     }
 
     private async Task AssertRefusedAsync(string token)

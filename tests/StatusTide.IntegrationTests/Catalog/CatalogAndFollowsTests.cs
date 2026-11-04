@@ -261,6 +261,27 @@ public sealed class CatalogAndFollowsTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Follow_changes_are_limited_per_user()
+    {
+        var user = await _seed.AddGuestAsync();
+        var other = await _seed.AddGuestAsync();
+        var vendor = await AddListedVendorAsync(Unique());
+        using var client = ClientFor(user);
+        using var otherClient = ClientFor(other);
+        for (var i = 0; i < FollowsExtensions.ChangesPerMinute; i++)
+        {
+            using var allowed = await client.DeleteAsync($"/api/follows/{vendor.Id}", Cancel);
+            Assert.Equal(HttpStatusCode.NoContent, allowed.StatusCode);
+        }
+
+        using var limited = await client.PutAsJsonAsync($"/api/follows/{vendor.Id}", new SetFollowsRequest(null), Cancel);
+        using var otherUser = await otherClient.DeleteAsync($"/api/follows/{vendor.Id}", Cancel);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, otherUser.StatusCode);
+    }
+
+    [Fact]
     public async Task A_vendor_that_left_the_catalog_can_still_be_unfollowed()
     {
         var user = await _seed.AddGuestAsync();

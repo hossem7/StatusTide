@@ -1,5 +1,4 @@
 using System.Text;
-using System.Threading.RateLimiting;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using StatusTide.Api.Features.Dashboard;
 using StatusTide.Api.Features.Guests;
+using StatusTide.Api.Features.RateLimiting;
 using StatusTide.Data.Users;
 
 namespace StatusTide.Api.Features.Accounts;
@@ -86,9 +86,10 @@ public static class AccountsExtensions
         services.AddScoped<SignInCommand>();
         services.AddScoped<ConfirmEmailCommand>();
 
-        services.AddRateLimiter(limiter => limiter.AddPolicy(RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
-            http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = AttemptsPerMinute, Window = TimeSpan.FromMinutes(1) })));
+        services.AddScoped<SignInLockout>();
+
+        services.AddRateLimiter(limiter => limiter.AddPolicy(RateLimitPolicy, http =>
+            RateLimitingExtensions.PerAddress(http, RateLimitPolicy, AttemptsPerMinute, TimeSpan.FromMinutes(1))));
 
         return services;
     }

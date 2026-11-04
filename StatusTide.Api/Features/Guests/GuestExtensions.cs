@@ -1,7 +1,7 @@
-using System.Threading.RateLimiting;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+
+using StatusTide.Api.Features.RateLimiting;
 
 namespace StatusTide.Api.Features.Guests;
 
@@ -22,13 +22,8 @@ public static class GuestExtensions
         services.AddScoped<StartGuestCommand>();
         services.AddAuthentication(GuestAuthenticationHandler.SchemeName)
             .AddScheme<AuthenticationSchemeOptions, GuestAuthenticationHandler>(GuestAuthenticationHandler.SchemeName, _ => { });
-        services.AddRateLimiter(limiter =>
-        {
-            limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            limiter.AddPolicy(RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
-                http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = SessionsPerHour, Window = TimeSpan.FromHours(1) }));
-        });
+        services.AddRateLimiter(limiter => limiter.AddPolicy(RateLimitPolicy, http =>
+            RateLimitingExtensions.PerAddress(http, RateLimitPolicy, SessionsPerHour, TimeSpan.FromHours(1))));
 
         return services;
     }

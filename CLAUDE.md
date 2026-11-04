@@ -17,6 +17,8 @@ npm test                              # Vitest and React Testing Library
 npm run build                         # type check + production build
 npm run dev                           # http://localhost:5173, proxies /api and /hubs to the API
 
+docker run --rm -i -e SCENARIO=address grafana/k6:2.2.0 run - < tests/load/rate-limits.js   # load test; see tests/load/README.md
+
 cp .env.example .env                  # once; local values only
 docker compose up --build             # whole stack; API on 5080, web app on 8080
 docker compose up -d postgres redis rabbitmq storage mailpit   # infrastructure only
@@ -52,6 +54,7 @@ Rules:
 - **Consumers must be idempotent.** MassTransit retries a failing message 5 times (exponential backoff, 1 to 30 s, see `MessagingDefaults`), then moves it to the `_error` queue. A message can arrive more than once.
 - **Interfaces only where an implementation really swaps**: `IStatusReader` (one per feed format), `IIncidentSummarizer` (Bedrock or fake), `IAlertSender` (SES, Mailpit, webhooks), `IEmailSender` (Mailpit over SMTP, SES in production). Do not add an interface for a class with one implementation.
 - **Sign-in is chosen per request.** A request with a JWT is judged by that JWT alone; anything else uses the guest cookie. Read the caller with `User.UserId()`, and scope every query on user-owned data to that id.
+- **Rate limits live in Redis** (`Features/RateLimiting`), so they hold across API replicas and restarts. Every request passes a general limit per user, or per address with no session. An endpoint that writes data or costs money adds its own policy with `RateLimitingExtensions.PerUser` or `PerAddress`. Limits let requests through when Redis is down, so never rely on them for correctness. Read the client address with `ClientAddress`, never from `X-Forwarded-For` directly.
 - **API endpoints are controllers** (`[ApiController]`), not minimal APIs.
 - **Frontend**: feature folders under `WebUI/src/features/`, small components, server data through one typed API client. Never use `dangerouslySetInnerHTML`.
 
