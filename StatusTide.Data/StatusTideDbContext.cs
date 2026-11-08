@@ -26,6 +26,7 @@ public class StatusTideDbContext(DbContextOptions<StatusTideDbContext> options) 
     public DbSet<IncidentEvent> IncidentEvents => Set<IncidentEvent>();
     public DbSet<Check> Checks => Set<Check>();
     public DbSet<CheckRollup> CheckRollups => Set<CheckRollup>();
+    public DbSet<CheckOutage> CheckOutages => Set<CheckOutage>();
     public DbSet<AlertDelivery> AlertDeliveries => Set<AlertDelivery>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

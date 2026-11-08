@@ -17,6 +17,18 @@ internal class CheckConfiguration : IEntityTypeConfiguration<Check>
     }
 }
 
+internal class CheckOutageConfiguration : IEntityTypeConfiguration<CheckOutage>
+{
+    public void Configure(EntityTypeBuilder<CheckOutage> outage)
+    {
+        // At most one open outage per vendor, even if two workers check the same vendor at once.
+        outage.HasIndex(o => o.VendorId).IsUnique().HasFilter("resolved_at IS NULL");
+
+        // Outages near an incident's start, for the incident page.
+        outage.HasIndex(o => new { o.VendorId, o.DetectedAt });
+    }
+}
+
 internal class CheckRollupConfiguration : IEntityTypeConfiguration<CheckRollup>
 {
     public void Configure(EntityTypeBuilder<CheckRollup> rollup)

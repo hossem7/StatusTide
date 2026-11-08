@@ -2,6 +2,7 @@ using StatusTide.Common.Logging;
 using StatusTide.Common.Messaging;
 using StatusTide.Common.Redis;
 using StatusTide.Data;
+using StatusTide.Publisher.Features.Checks;
 using StatusTide.Publisher.Features.Guests;
 using StatusTide.Publisher.Features.Polling;
 
@@ -16,6 +17,7 @@ builder.Services.AddStatusTideMessaging(builder.Configuration);
 // polls twice, for example during a rollout.
 builder.AddPollScheduler();
 builder.AddGuestCleanup();
+builder.AddChecks();
 
 var host = builder.Build();
 host.Run();
