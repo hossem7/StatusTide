@@ -19,6 +19,9 @@ public static class AcmeCloudSeed
     public static readonly Guid WebhooksComponentId = new("0199f0a0-0000-7000-8000-00000000ac13");
     public static readonly Guid DatabaseComponentId = new("0199f0a0-0000-7000-8000-00000000ac14");
 
+    /// <summary>Our own check of Acme Cloud. Nothing is fetched: it fails while a simulated outage runs.</summary>
+    public const string CheckUrl = "demo://acme-cloud/health";
+
     private static readonly Guid VerificationId = new("0199f0a0-0000-7000-8000-00000000ac21");
     private static readonly DateTimeOffset SeededAt = new(2026, 10, 25, 0, 0, 0, TimeSpan.Zero);
 
@@ -33,6 +36,7 @@ public static class AcmeCloudSeed
             FeedUrl = "demo://acme-cloud",
             StatusPageUrl = "/vendors/acme-cloud",
             Format = FeedFormat.Demo,
+            CheckUrl = CheckUrl,
             IsCatalog = true,
             IsEnabled = true,
             PollIntervalSeconds = 60,

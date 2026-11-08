@@ -67,7 +67,7 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 
 **Treat the LLM as a formatter, not a source.** The summarizer gets statuses, component names, timestamps and our own check data. Incident titles are text from outside the system, so all input is wrapped as untrusted data to blunt prompt injection. The model must return strict JSON, which is validated before saving; anything invalid falls back to a template sentence. Summaries are generated only when an incident opens, changes or resolves, so the cost is a few cents a month. They're labeled "AI-generated" in the UI.
 
-**Confirm before alarming.** A component is marked down by our checks only after three failures in a row. That makes our detection about two minutes later than the first failed check, but one slow response shouldn't wake anyone up, and noisy alerts are the fastest way to get an alert tool muted.
+**Confirm before alarming.** A vendor is marked down by our checks only after three failures in a row. That makes our detection about two minutes later than the first failed check, but one slow response shouldn't wake anyone up, and noisy alerts are the fastest way to get an alert tool muted.
 
 **Guests are real users.** "Try it as a guest" creates a guest user on the server and a secure HttpOnly cookie, instead of keeping state in the browser. The cookie holds a random token and the database keeps only its hash. Visitors exercise the same backend as account holders, and signing up just transfers ownership of the guest's data. Guests inactive for 30 days are deleted by a cleanup job. Guests get in-app alerts only and lower limits, so the open door can't be used to send email.
 

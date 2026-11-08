@@ -113,6 +113,45 @@ namespace StatusTide.Data.Migrations
                     b.ToTable("checks", (string)null);
                 });
 
+            modelBuilder.Entity("StatusTide.Data.Checks.CheckOutage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("DetectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("detected_at");
+
+                    b.Property<DateTimeOffset>("FirstFailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_failed_at");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid>("VendorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("vendor_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_check_outages");
+
+                    b.HasIndex("VendorId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_check_outages_vendor_id")
+                        .HasFilter("resolved_at IS NULL");
+
+                    b.HasIndex("VendorId", "DetectedAt")
+                        .HasDatabaseName("ix_check_outages_vendor_id_detected_at");
+
+                    b.ToTable("check_outages", (string)null);
+                });
+
             modelBuilder.Entity("StatusTide.Data.Checks.CheckRollup", b =>
                 {
                     b.Property<Guid>("VendorId")
@@ -586,6 +625,7 @@ namespace StatusTide.Data.Migrations
                         {
                             Id = new Guid("0199f0a0-0000-7000-8000-00000000ac01"),
                             Category = "Cloud",
+                            CheckUrl = "demo://acme-cloud/health",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FeedUrl = "demo://acme-cloud",
                             Format = "Demo",
@@ -727,6 +767,18 @@ namespace StatusTide.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_checks_vendors_vendor_id");
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("StatusTide.Data.Checks.CheckOutage", b =>
+                {
+                    b.HasOne("StatusTide.Data.Vendors.Vendor", "Vendor")
+                        .WithMany()
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_check_outages_vendors_vendor_id");
 
                     b.Navigation("Vendor");
                 });
