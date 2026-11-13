@@ -23,11 +23,13 @@ cp .env.example .env                  # once; local values only
 docker compose up --build             # whole stack; API on 5080, web app on 8080
 docker compose up -d postgres redis rabbitmq storage mailpit   # infrastructure only
 kubectl kustomize k8s/local           # render the k3d manifests (full k3d steps in README)
+
+cd infra && terraform fmt -recursive && terraform validate   # needs `terraform init -backend=false` once; full steps in infra/README.md
 ```
 
 Infrastructure lives in `compose.yaml` and `k8s/`, and AWS resources are defined in Terraform in `infra/` (never created by hand in the console). `k8s/base` is shared with production k3s, so keep local-only changes in `k8s/local`. Secrets come from `.env` (Compose) or the `statustide-secrets` secret (Kubernetes), never from files in the repo.
 
-CI (`.github/workflows/ci.yml`) runs the same build, test, lint and build steps, then builds a Docker image for each app. Run them locally before opening a PR.
+CI (`.github/workflows/ci.yml`) runs the same build, test, lint and build steps, then builds a Docker image for each app. Pull requests that touch `infra/` also run `.github/workflows/infra.yml`: `terraform fmt`, `validate` and tflint, then a read-only `terraform plan` once the AWS account exists. Run them locally before opening a PR.
 
 ## Architecture
 

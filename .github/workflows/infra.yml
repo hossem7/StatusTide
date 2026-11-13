@@ -1,0 +1,127 @@
+name: Infra
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra.yml"
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra.yml"
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+jobs:
+  check:
+    name: Terraform fmt, validate and tflint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.17.1
+          terraform_wrapper: false
+
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.65.0
+
+      - run: terraform fmt -check -recursive -diff
+
+      # -backend=false: validation needs no AWS account or state.
+      - name: terraform validate
+        run: |
+          for dir in bootstrap .; do
+            echo "::group::$dir"
+            terraform -chdir="$dir" init -backend=false
+            terraform -chdir="$dir" validate
+            echo "::endgroup::"
+          done
+
+      - run: tflint --init --config "$PWD/.tflint.hcl"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - run: tflint --recursive --config "$PWD/.tflint.hcl" --format compact
+
+  plan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    needs: check
+    # Runs once bootstrap is applied and the role is saved as a repository
+    # variable. Pull requests from forks get no OIDC token, so they skip it.
+    if: >-
+      github.event_name == 'pull_request' &&
+      vars.AWS_PLAN_ROLE_ARN != '' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      TF_VAR_region: ${{ vars.AWS_REGION }}
+      TF_VAR_domain: ${{ vars.STATUSTIDE_DOMAIN }}
+      TF_VAR_backups_bucket: ${{ vars.TF_BACKUPS_BUCKET }}
+      TF_VAR_alert_email: ${{ secrets.BUDGET_ALERT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.17.1
+          terraform_wrapper: false
+
+      # Temporary credentials for the read-only plan role. No stored AWS keys.
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - run: >-
+          terraform init
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="region=${{ vars.AWS_REGION }}"
+
+      - id: plan
+        run: |
+          set +e
+          terraform plan -no-color -detailed-exitcode -lock-timeout=2m > plan.txt 2>&1
+          code=$?
+          set -e
+          cat plan.txt
+          # 0 = no changes, 2 = changes, anything else is a failure.
+          if [ "$code" -ne 0 ] && [ "$code" -ne 2 ]; then exit "$code"; fi
+
+      - name: Post the plan on the pull request
+        if: always() && steps.plan.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "### Terraform plan"
+            echo
+            echo '```'
+            # GitHub comments hold at most 65,536 characters.
+            tail -c 60000 plan.txt
+            echo '```'
+          } > comment.md
+          gh pr comment "$PR" --body-file comment.md --edit-last --create-if-none

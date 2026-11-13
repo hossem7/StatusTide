@@ -1,0 +1,4 @@
+# Copy to backend.hcl (not committed), set the bucket from bootstrap's state_bucket
+# output, then run: terraform init -backend-config=backend.hcl
+bucket = "statustide-tfstate-123456789012"
+region = "us-east-1"
