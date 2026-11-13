@@ -1,5 +1,7 @@
 import type { VendorCard } from '../../api/types'
+import { AppLink } from '../../components/AppLink'
 import { StatusPill } from '../../components/StatusPill'
+import { incidentPath } from '../incident/incidentPaths'
 import { DemoControls } from './DemoControls'
 import { componentSummary, formatChecked, initialsOf } from './format'
 import type { UseDemoOutage } from './useDemoOutage'
@@ -24,7 +26,7 @@ export function VendorCardView({ card, now, demo }: { card: VendorCard; now: num
       {card.activeIncident && (
         <p className="vendor-card__incident">
           {/* The vendor's own title: React renders it as text, never as HTML. */}
-          {card.activeIncident.title}
+          <AppLink href={incidentPath(card.activeIncident.id)}>{card.activeIncident.title}</AppLink>
           {card.activeIncidentCount > 1 && ` and ${card.activeIncidentCount - 1} more`}
         </p>
       )}

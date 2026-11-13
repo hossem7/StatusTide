@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAccess } from './api/client'
 import type { Me } from './api/types'
 import type { FakeConnection } from './test/fakeConnection'
-import { account, acme, guest } from './test/sampleCards'
+import { account, acme, acmeDown, guest } from './test/sampleCards'
+import { openIncident } from './test/sampleIncident'
 import App from './App'
 
 const connections = vi.hoisted(() => [] as unknown[])
@@ -36,7 +37,7 @@ function stubApi(routes: Record<string, Route>) {
 
 const unauthorized = () => new Response(null, { status: 401 })
 const dashboard = () => Response.json({ vendors: [acme] })
-const noOutage = () => Response.json({ state: 'none', startedAt: null, resolvesAt: null, nextStartAt: null })
+const noOutage = () => Response.json({ state: 'none', startedAt: null, postsAt: null, resolvesAt: null, nextStartAt: null })
 
 beforeEach(() => {
   connections.length = 0
@@ -298,5 +299,34 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Your email is confirmed' })).toBeInTheDocument()
     const [, init] = fetchMock.mock.calls[0]
     expect(JSON.parse(init?.body as string)).toEqual({ token: 'abc' })
+  })
+
+  it('opens an incident from the dashboard card, and goes back', async () => {
+    stubApi({
+      'GET /api/me': () => Response.json(guest),
+      'GET /api/dashboard': () => Response.json({ vendors: [acmeDown] }),
+      'GET /api/demo/outage': noOutage,
+      [`GET /api/incidents/${acmeDown.activeIncident.id}`]: () =>
+        Response.json({ ...openIncident, id: acmeDown.activeIncident.id }),
+    })
+    render(<App />)
+
+    await userEvent.click(await screen.findByRole('link', { name: 'Elevated API errors' }))
+
+    expect(window.location.pathname).toBe(`/incidents/${acmeDown.activeIncident.id}`)
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Elevated error rates on the API')
+
+    await userEvent.click(screen.getByRole('link', { name: '← Back to dashboard' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your services' })).toBeInTheDocument()
+  })
+
+  it('shows "not found" for an incident address without a valid id, without asking the server', async () => {
+    window.history.replaceState(null, '', '/incidents/not-an-id')
+    const fetchMock = stubApi({ 'GET /api/me': () => Response.json(guest) })
+    render(<App />)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't find that incident.")
+    expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining('/api/incidents'), expect.anything())
   })
 })

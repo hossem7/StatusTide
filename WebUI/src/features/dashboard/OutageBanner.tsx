@@ -1,5 +1,7 @@
 import type { VendorCard } from '../../api/types'
+import { AppLink } from '../../components/AppLink'
 import { statusLabel } from '../../components/statusLabels'
+import { incidentPath } from '../incident/incidentPaths'
 import { formatTime } from './format'
 
 const isDown = (card: VendorCard) => card.status === 'majorOutage' || card.status === 'partialOutage'
@@ -25,6 +27,11 @@ export function OutageBanner({ vendors }: { vendors: VendorCard[] }) {
         {others.length === 1 && ` ${others[0].name} is down too.`}
         {others.length > 1 && ` ${others.length} other services are down too.`}
       </p>
+      {incident && (
+        <AppLink href={incidentPath(incident.id)} className="outage-banner__link">
+          View incident
+        </AppLink>
+      )}
     </section>
   )
 }

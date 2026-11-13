@@ -84,12 +84,12 @@ describe('useDemoOutage', () => {
 
   it('loads again once the cooldown ends', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-    vi.setSystemTime(Date.parse('2026-11-02T12:06:00Z'))
+    vi.setSystemTime(Date.parse('2026-11-02T12:09:00Z'))
     const { load } = setup({ load: async () => coolingDown })
     await act(async () => {})
     expect(load).toHaveBeenCalledTimes(1)
 
-    // Cooldown ends at 12:07, a minute away, and the hook waits one extra second.
+    // Cooldown ends at 12:10, a minute away, and the hook waits one extra second.
     await act(async () => vi.advanceTimersByTime(60_000))
     expect(load).toHaveBeenCalledTimes(1)
     await act(async () => vi.advanceTimersByTime(1_000))
