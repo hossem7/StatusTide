@@ -11,11 +11,11 @@ namespace StatusTide.Subscriber.Features.Polling.Demo;
 /// </summary>
 public class DemoReader(DemoOutageStore store, TimeProvider timeProvider) : IStatusReader
 {
-    /// <summary>The incident moves from investigating to identified after this long.</summary>
-    public static readonly TimeSpan IdentifiedAfter = TimeSpan.FromSeconds(90);
+    /// <summary>The incident moves from investigating to identified this long after Acme posts it.</summary>
+    public static readonly TimeSpan IdentifiedAfter = TimeSpan.FromMinutes(1);
 
-    /// <summary>A fix is out and the incident is monitored after this long.</summary>
-    public static readonly TimeSpan MonitoringAfter = TimeSpan.FromMinutes(3);
+    /// <summary>A fix is out and the incident is monitored this long after Acme posts it.</summary>
+    public static readonly TimeSpan MonitoringAfter = TimeSpan.FromMinutes(2);
 
     private static readonly FeedValidators NoValidators = new(null, null);
 
@@ -28,27 +28,31 @@ public class DemoReader(DemoOutageStore store, TimeProvider timeProvider) : ISta
     }
 
     /// <summary>
-    /// Acme Cloud's feed at <paramref name="now"/>. During an outage the API is down and webhooks,
-    /// which depend on it, are slow. Once resolved, the incident stays in the feed until the
-    /// cooldown ends, so it is saved with its real resolve time instead of our detection time.
+    /// Acme Cloud's feed at <paramref name="now"/>. Like many real vendors, Acme only posts the
+    /// outage a few minutes after it starts (<see cref="DemoOutageStore.PostDelay"/>), so until
+    /// then the feed says all is well while our own checks already fail. Once posted, the API is
+    /// down and webhooks, which depend on it, are slow. A resolved incident stays in the feed
+    /// until the cooldown ends, so it is saved with its real resolve time instead of our
+    /// detection time. An outage resolved before Acme posted it never appears.
     /// </summary>
     public static StatusSnapshot Snapshot(DemoOutage? outage, DateTimeOffset now)
     {
-        if (outage is null || now < outage.StartedAt)
+        if (outage is null || !outage.IsPosted || now < outage.PostsAt)
         {
             return new StatusSnapshot(Components(ComponentStatus.Operational, ComponentStatus.Operational), []);
         }
 
+        var postedAt = outage.PostsAt;
         var end = outage.IsActiveAt(now) ? now : outage.ResolvesAt;
-        var updates = new List<IncidentUpdateSnapshot> { new(IncidentStatus.Investigating, outage.StartedAt) };
-        if (end - outage.StartedAt >= IdentifiedAfter)
+        var updates = new List<IncidentUpdateSnapshot> { new(IncidentStatus.Investigating, postedAt) };
+        if (end - postedAt >= IdentifiedAfter)
         {
-            updates.Add(new(IncidentStatus.Identified, outage.StartedAt + IdentifiedAfter));
+            updates.Add(new(IncidentStatus.Identified, postedAt + IdentifiedAfter));
         }
 
-        if (end - outage.StartedAt >= MonitoringAfter)
+        if (end - postedAt >= MonitoringAfter)
         {
-            updates.Add(new(IncidentStatus.Monitoring, outage.StartedAt + MonitoringAfter));
+            updates.Add(new(IncidentStatus.Monitoring, postedAt + MonitoringAfter));
         }
 
         if (!outage.IsActiveAt(now))
@@ -65,11 +69,12 @@ public class DemoReader(DemoOutageStore store, TimeProvider timeProvider) : ISta
         };
 
         // One incident per outage, named by its start time, so each simulation is a new incident.
+        // Its start is the moment Acme posted it, the time the incident page compares with ours.
         var incident = new IncidentSnapshot(
             $"demo-{outage.StartedAt.ToUnixTimeSeconds()}",
             "Elevated error rates on the API",
             status,
-            outage.StartedAt,
+            postedAt,
             status == IncidentStatus.Resolved ? outage.ResolvesAt : null,
             "/vendors/acme-cloud",
             ["api", "webhooks"],

@@ -51,6 +51,7 @@ public sealed class DemoEndpointTests : IAsyncLifetime
         var outage = await response.Content.ReadFromJsonAsync<DemoOutageDto>(Cancel);
         Assert.Equal("active", outage!.State);
         Assert.Equal(Now, outage.StartedAt);
+        Assert.Equal(Now + DemoOutageStore.PostDelay, outage.PostsAt);
         Assert.Equal(Now + DemoOutageStore.Duration, outage.ResolvesAt);
 
         var harness = _factory.Services.GetTestHarness();
@@ -91,6 +92,7 @@ public sealed class DemoEndpointTests : IAsyncLifetime
         var outage = await response.Content.ReadFromJsonAsync<DemoOutageDto>(Cancel);
         Assert.Equal("coolingDown", outage!.State);
         Assert.Equal(Now.AddSeconds(40), outage.ResolvesAt);
+        Assert.Null(outage.PostsAt); // Resolved before Acme posted it, so it never will.
         Assert.Equal(Now.AddSeconds(40) + DemoOutageStore.Cooldown, outage.NextStartAt);
 
         var harness = _factory.Services.GetTestHarness();

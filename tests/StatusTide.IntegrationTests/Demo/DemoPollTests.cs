@@ -88,6 +88,15 @@ public sealed class DemoPollTests(PostgresFixture postgres, RedisFixture redis) 
         _time.Advance(TimeSpan.FromSeconds(2));
         await PollAsync();
 
+        // Acme hasn't posted yet: only our own checks would see the outage.
+        await using (var db = NewDbContext())
+        {
+            Assert.False(await db.Incidents.AnyAsync(Cancel));
+        }
+
+        _time.Advance(DemoOutageStore.PostDelay);
+        await PollAsync();
+
         await using (var db = NewDbContext())
         {
             var api = await db.Components.SingleAsync(c => c.Id == AcmeCloudSeed.ApiComponentId, Cancel);
@@ -95,7 +104,7 @@ public sealed class DemoPollTests(PostgresFixture postgres, RedisFixture redis) 
 
             var incident = await db.Incidents.Include(i => i.Components).SingleAsync(Cancel);
             Assert.Equal(IncidentStatus.Investigating, incident.Status);
-            Assert.Equal(outage!.StartedAt, incident.StartedAt);
+            Assert.Equal(outage!.PostsAt, incident.StartedAt);
             Assert.Equal(
                 [AcmeCloudSeed.ApiComponentId, AcmeCloudSeed.WebhooksComponentId],
                 incident.Components.Select(c => c.Id).Order());
@@ -120,15 +129,17 @@ public sealed class DemoPollTests(PostgresFixture postgres, RedisFixture redis) 
         }
 
         Assert.Equal(2, ChangesAnnounced());
+        Assert.True(outage.IsPosted);
     }
 
     [Fact]
     public async Task An_outage_resolves_itself_after_its_duration()
     {
         await Store.TryStartAsync();
+        _time.Advance(DemoOutageStore.PostDelay);
         await PollAsync();
 
-        _time.Advance(DemoOutageStore.Duration + TimeSpan.FromSeconds(30));
+        _time.Advance(DemoOutageStore.Duration - DemoOutageStore.PostDelay + TimeSpan.FromSeconds(30));
         await PollAsync();
 
         await using var db = NewDbContext();

@@ -10,6 +10,12 @@ public record DemoOutage(DateTimeOffset StartedAt, DateTimeOffset ResolvesAt)
     /// <summary>When the next outage may start.</summary>
     public DateTimeOffset CooldownEndsAt => ResolvesAt + DemoOutageStore.Cooldown;
 
+    /// <summary>When Acme posts the incident on its status page, if the outage is still running then.</summary>
+    public DateTimeOffset PostsAt => StartedAt + DemoOutageStore.PostDelay;
+
+    /// <summary>False when the outage was resolved before Acme got around to posting it.</summary>
+    public bool IsPosted => ResolvesAt > PostsAt;
+
     public bool IsActiveAt(DateTimeOffset now) => now < ResolvesAt;
 }
 
@@ -22,7 +28,14 @@ public class DemoOutageStore(IConnectionMultiplexer redis, TimeProvider timeProv
 {
     public const string Key = "demo:acme-cloud";
 
-    public static readonly TimeSpan Duration = TimeSpan.FromMinutes(5);
+    public static readonly TimeSpan Duration = TimeSpan.FromMinutes(8);
+
+    /// <summary>
+    /// How long Acme takes to post the incident. Real vendors often post minutes after an outage
+    /// starts, and our own checks need 3 failures a minute apart to call it down, so this delay
+    /// lets the incident page show an early catch.
+    /// </summary>
+    public static readonly TimeSpan PostDelay = TimeSpan.FromMinutes(5);
     public static readonly TimeSpan Cooldown = TimeSpan.FromMinutes(2);
 
     /// <summary>The latest outage, until its cooldown ends. It may already be resolved.</summary>

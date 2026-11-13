@@ -21,9 +21,18 @@ public class DemoReaderTests
     }
 
     [Fact]
-    public void A_new_outage_takes_the_api_down_and_slows_webhooks()
+    public void Until_acme_posts_the_feed_says_all_is_well()
     {
-        var snapshot = DemoReader.Snapshot(Outage, Start.AddSeconds(5));
+        var snapshot = DemoReader.Snapshot(Outage, Outage.PostsAt.AddSeconds(-1));
+
+        Assert.All(snapshot.Components, c => Assert.Equal(ComponentStatus.Operational, c.Status));
+        Assert.Empty(snapshot.Incidents);
+    }
+
+    [Fact]
+    public void Once_posted_the_api_is_down_and_webhooks_are_slow()
+    {
+        var snapshot = DemoReader.Snapshot(Outage, Outage.PostsAt.AddSeconds(5));
 
         Assert.Equal(ComponentStatus.MajorOutage, Status(snapshot, "api"));
         Assert.Equal(ComponentStatus.DegradedPerformance, Status(snapshot, "webhooks"));
@@ -31,18 +40,19 @@ public class DemoReaderTests
 
         var incident = Assert.Single(snapshot.Incidents);
         Assert.Equal(IncidentStatus.Investigating, incident.Status);
-        Assert.Equal(Start, incident.StartedAt);
+        Assert.Equal(Start + DemoOutageStore.PostDelay, incident.StartedAt);
+        Assert.Equal(incident.StartedAt, Assert.Single(incident.Updates).OccurredAt);
         Assert.Null(incident.ResolvedAt);
         Assert.Equal(["api", "webhooks"], incident.ComponentExternalIds);
     }
 
     [Fact]
-    public void The_incident_moves_through_identified_and_monitoring()
+    public void The_incident_moves_through_identified_and_monitoring_before_it_resolves()
     {
-        var identified = Assert.Single(DemoReader.Snapshot(Outage, Start + DemoReader.IdentifiedAfter).Incidents);
+        var identified = Assert.Single(DemoReader.Snapshot(Outage, Outage.PostsAt + DemoReader.IdentifiedAfter).Incidents);
         Assert.Equal(IncidentStatus.Identified, identified.Status);
 
-        var snapshot = DemoReader.Snapshot(Outage, Start + DemoReader.MonitoringAfter);
+        var snapshot = DemoReader.Snapshot(Outage, Outage.PostsAt + DemoReader.MonitoringAfter);
         var monitoring = Assert.Single(snapshot.Incidents);
         Assert.Equal(IncidentStatus.Monitoring, monitoring.Status);
         Assert.Equal(
@@ -50,12 +60,15 @@ public class DemoReaderTests
             monitoring.Updates.Select(u => u.Status));
         Assert.Equal(ComponentStatus.DegradedPerformance, Status(snapshot, "api"));
         Assert.Equal(ComponentStatus.Operational, Status(snapshot, "webhooks"));
+
+        // Every stage fits before the outage resolves itself, so a visitor who waits sees them all.
+        Assert.True(Outage.PostsAt + DemoReader.MonitoringAfter < Outage.ResolvesAt);
     }
 
     [Fact]
     public void A_resolved_outage_stays_in_the_feed_with_its_resolve_time()
     {
-        var resolvedAt = Start.AddSeconds(30);
+        var resolvedAt = Outage.PostsAt.AddSeconds(30);
         var snapshot = DemoReader.Snapshot(Outage with { ResolvesAt = resolvedAt }, resolvedAt.AddMinutes(1));
 
         var incident = Assert.Single(snapshot.Incidents);
@@ -66,12 +79,23 @@ public class DemoReaderTests
     }
 
     [Fact]
+    public void An_outage_resolved_before_acme_posts_never_appears()
+    {
+        var resolved = Outage with { ResolvesAt = Start.AddMinutes(2) };
+
+        var snapshot = DemoReader.Snapshot(resolved, Outage.PostsAt.AddMinutes(1));
+
+        Assert.Empty(snapshot.Incidents);
+        Assert.All(snapshot.Components, c => Assert.Equal(ComponentStatus.Operational, c.Status));
+    }
+
+    [Fact]
     public void Each_outage_is_a_separate_incident()
     {
-        var later = new DemoOutage(Start.AddMinutes(10), Start.AddMinutes(15));
+        var later = new DemoOutage(Start.AddMinutes(10), Start.AddMinutes(10) + DemoOutageStore.Duration);
 
-        var first = Assert.Single(DemoReader.Snapshot(Outage, Start).Incidents);
-        var second = Assert.Single(DemoReader.Snapshot(later, later.StartedAt).Incidents);
+        var first = Assert.Single(DemoReader.Snapshot(Outage, Outage.PostsAt).Incidents);
+        var second = Assert.Single(DemoReader.Snapshot(later, later.PostsAt).Incidents);
 
         Assert.NotEqual(first.ExternalId, second.ExternalId);
     }

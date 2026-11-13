@@ -65,14 +65,22 @@ public class DemoController(DemoOutageStore store, IPublishEndpoint publisher, T
 
 /// <summary>The demo outage as the dashboard's button needs it.</summary>
 /// <param name="State">"none", "active" or "coolingDown".</param>
+/// <param name="PostsAt">
+/// When Acme posts the incident on its status page. Until then only our own checks see the
+/// outage. Null when there is no outage or it was resolved before Acme posted it.
+/// </param>
 /// <param name="NextStartAt">When "Simulate an outage" works again, or null when it works now.</param>
-public record DemoOutageDto(string State, DateTimeOffset? StartedAt, DateTimeOffset? ResolvesAt, DateTimeOffset? NextStartAt)
+public record DemoOutageDto(string State, DateTimeOffset? StartedAt, DateTimeOffset? PostsAt, DateTimeOffset? ResolvesAt, DateTimeOffset? NextStartAt)
 {
     public static DemoOutageDto From(DemoOutage? outage, DateTimeOffset now) => outage switch
     {
-        null => new("none", null, null, null),
-        _ when outage.IsActiveAt(now) => new("active", outage.StartedAt, outage.ResolvesAt, outage.CooldownEndsAt),
-        _ when now < outage.CooldownEndsAt => new("coolingDown", outage.StartedAt, outage.ResolvesAt, outage.CooldownEndsAt),
-        _ => new("none", null, null, null),
+        null => None,
+        _ when outage.IsActiveAt(now) => new("active", outage.StartedAt, PostTime(outage), outage.ResolvesAt, outage.CooldownEndsAt),
+        _ when now < outage.CooldownEndsAt => new("coolingDown", outage.StartedAt, PostTime(outage), outage.ResolvesAt, outage.CooldownEndsAt),
+        _ => None,
     };
+
+    private static readonly DemoOutageDto None = new("none", null, null, null, null);
+
+    private static DateTimeOffset? PostTime(DemoOutage outage) => outage.IsPosted ? outage.PostsAt : null;
 }
