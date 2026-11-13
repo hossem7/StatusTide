@@ -4,7 +4,7 @@
 
 One dashboard for the status of every service your stack depends on, with independent checks running alongside each vendor's official status page.
 
-> **Project status: in development, not deployed yet.** Working today and runnable locally with Docker Compose: the ingestion pipeline, the live dashboard, the demo vendor you can break on purpose, guest mode, accounts, the service catalog, rate limits and our own checks every minute. In progress: the incident page with the "caught early" comparison. Next: Terraform and the first AWS deploy. Still to come: more feed readers, custom status pages, AI summaries and alerts. Progress is tracked in [milestones](https://github.com/hossem7/StatusTide/milestones) and [issues](https://github.com/hossem7/StatusTide/issues).
+> **Project status: in development, not deployed yet.** Working today and runnable locally with Docker Compose: the ingestion pipeline, the live dashboard, the demo vendor you can break on purpose, guest mode, accounts, the service catalog, rate limits, our own checks every minute and the incident page with the "caught early" comparison. In progress: the AWS infrastructure in Terraform ([`infra/`](infra/README.md)). Next: the first AWS deploy. Still to come: more feed readers, custom status pages, AI summaries and alerts. Progress is tracked in [milestones](https://github.com/hossem7/StatusTide/milestones) and [issues](https://github.com/hossem7/StatusTide/issues).
 
 ## The problem
 
@@ -116,9 +116,9 @@ Each milestone ends with something that runs and can be demonstrated. Milestones
 | [M1: Foundation](https://github.com/hossem7/StatusTide/milestone/1) | Solution structure, Docker Compose, CI, database schema and migrations | Done |
 | [M2: Ingestion pipeline](https://github.com/hossem7/StatusTide/milestone/2) | Statuspage reader, scheduler, poll queue, workers and change detection | Done |
 | [M3: Core app](https://github.com/hossem7/StatusTide/milestone/3) | Live dashboard, demo vendor, guest mode, accounts, catalog, rate limits | Done |
-| [M4: Checks, readers and AI](https://github.com/hossem7/StatusTide/milestone/4) | Our own checks, incident page, more readers, custom status pages, AI summaries | Checks done, incident page in progress |
+| [M4: Checks, readers and AI](https://github.com/hossem7/StatusTide/milestone/4) | Our own checks, incident page, more readers, custom status pages, AI summaries | Checks and incident page done |
 | [M5: Alerts and vendor vetting](https://github.com/hossem7/StatusTide/milestone/5) | Email and webhook alerts, format and terms review for every catalog vendor | Planned |
-| [M6: Launch](https://github.com/hossem7/StatusTide/milestone/6) | Terraform for all AWS infrastructure, AWS deployment, final documentation and a demo video | Terraform and deploy next |
+| [M6: Launch](https://github.com/hossem7/StatusTide/milestone/6) | Terraform for all AWS infrastructure, AWS deployment, final documentation and a demo video | Terraform in progress, deploy next |
 
 ## Running it locally
 

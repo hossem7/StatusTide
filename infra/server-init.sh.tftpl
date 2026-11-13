@@ -1,0 +1,37 @@
+#!/bin/bash
+# First-boot setup for the StatusTide server. Runs once, as root, through cloud-init.
+# Deploying the app onto k3s is a separate step (#20).
+set -euo pipefail
+
+# 2 GB of memory is tight for PostgreSQL, RabbitMQ, Redis and three .NET apps.
+# Swap keeps a short spike from killing a pod.
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+echo 'vm.swappiness=10' > /etc/sysctl.d/90-statustide.conf
+sysctl --system
+
+# Cap the system journal so logs never fill the 20 GB disk.
+mkdir -p /etc/systemd/journald.conf.d
+cat > /etc/systemd/journald.conf.d/90-statustide.conf <<'EOF'
+[Journal]
+SystemMaxUse=500M
+MaxRetentionSec=14day
+EOF
+systemctl restart systemd-journald
+
+# Container logs are rotated by k3s itself (kubelet), capped per container.
+mkdir -p /etc/rancher/k3s
+cat > /etc/rancher/k3s/config.yaml <<'EOF'
+write-kubeconfig-mode: "0600"
+kubelet-arg:
+  - "container-log-max-size=10Mi"
+  - "container-log-max-files=3"
+EOF
+
+# k3s ships Traefik, which listens on port 80 and routes /api, /hubs and /health.
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION='${k3s_version}' sh -s - server

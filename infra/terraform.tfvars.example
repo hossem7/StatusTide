@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars (not committed) and fill in.
+domain         = "statustide.example"
+backups_bucket = "statustide-backups-123456789012"
+alert_email    = "you@example.com"
+
+# Optional overrides
+# region             = "us-east-1"
+# instance_type      = "t3.small"
+# monthly_budget_usd = 30

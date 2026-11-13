@@ -1,0 +1,13 @@
+# Provider downloads and local state. Real state lives in the S3 bucket from bootstrap.
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+
+# Account-specific values. Copy the .example files and fill them in locally.
+*.tfvars
+backend.hcl
+
+# Bootstrap keeps its own state on disk on purpose (see README), so its state file
+# is backed up by hand, never committed.
