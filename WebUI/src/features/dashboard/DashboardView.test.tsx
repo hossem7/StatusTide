@@ -92,6 +92,20 @@ describe('OutageBanner', () => {
     const banner = screen.getByRole('region', { name: 'Outages' })
     expect(banner).toHaveTextContent('Acme Cloud (demo): major outage.')
     expect(banner).toHaveTextContent('Elevated API errors, since')
+    expect(within(banner).getByRole('link', { name: 'View incident' })).toHaveAttribute(
+      'href',
+      `/incidents/${acmeDown.activeIncident.id}`,
+    )
+  })
+
+  it('links the card to its active incident', () => {
+    renderView({ kind: 'ready', vendors: [acmeDown] })
+
+    const card = screen.getByRole('article', { name: 'Acme Cloud (demo)' })
+    expect(within(card).getByRole('link', { name: 'Elevated API errors' })).toHaveAttribute(
+      'href',
+      `/incidents/${acmeDown.activeIncident.id}`,
+    )
   })
 
   it('counts the other vendors that are down', () => {
@@ -109,7 +123,7 @@ describe('OutageBanner', () => {
 })
 
 describe('DemoControls', () => {
-  function renderDemo(outage: DemoOutage | null, extra: Partial<UseDemoOutage> = {}) {
+  function renderDemo(outage: DemoOutage | null, extra: Partial<UseDemoOutage> = {}, now = '2026-11-02T12:08:00Z') {
     const demo = { outage, busy: false, error: '', start: vi.fn(), resolve: vi.fn(), ...extra }
     render(
       <DashboardView
@@ -117,7 +131,7 @@ describe('DemoControls', () => {
         live="live"
         announcement=""
         retry={vi.fn()}
-        now={Date.parse('2026-11-02T12:05:30Z')}
+        now={Date.parse(now)}
         demo={demo}
       />,
     )
@@ -139,6 +153,19 @@ describe('DemoControls', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Resolve the outage' }))
 
     expect(demo.resolve).toHaveBeenCalled()
+  })
+
+  it('explains that Acme has not posted yet while our checks already see the outage', () => {
+    renderDemo(activeOutage, {}, '2026-11-02T12:01:00Z')
+
+    expect(screen.getByText('Acme posts about it in 4 min. Our own checks are already watching.')).toBeInTheDocument()
+  })
+
+  it('stops explaining the wait once Acme has posted', () => {
+    renderDemo(activeOutage)
+
+    expect(screen.queryByText(/Acme posts about it/)).toBeNull()
+    expect(screen.getByText('Shared with everyone trying the demo')).toBeInTheDocument()
   })
 
   it('waits for the cooldown', () => {

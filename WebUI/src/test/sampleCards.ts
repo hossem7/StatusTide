@@ -63,13 +63,20 @@ export const acmeDown = {
 
 // Demo outage states, as GET /api/demo/outage returns them.
 
-export const noOutage = { state: 'none', startedAt: null, resolvesAt: null, nextStartAt: null } satisfies DemoOutage
+export const noOutage = {
+  state: 'none',
+  startedAt: null,
+  postsAt: null,
+  resolvesAt: null,
+  nextStartAt: null,
+} satisfies DemoOutage
 
 export const activeOutage = {
   state: 'active',
   startedAt: '2026-11-02T12:00:00Z',
-  resolvesAt: '2026-11-02T12:05:00Z',
-  nextStartAt: '2026-11-02T12:07:00Z',
+  postsAt: '2026-11-02T12:05:00Z',
+  resolvesAt: '2026-11-02T12:08:00Z',
+  nextStartAt: '2026-11-02T12:10:00Z',
 } satisfies DemoOutage
 
 export const coolingDown = { ...activeOutage, state: 'coolingDown' } satisfies DemoOutage
