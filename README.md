@@ -59,7 +59,7 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 
 **One poll per vendor, not per user.** A thousand people following GitHub still means one request to GitHub per minute. This is the core of the architecture and the reason for the queue and the fingerprinting step above.
 
-**Publishers and subscribers instead of one big worker.** Scheduling and processing run as separate apps that only share message contracts. The Publisher runs as exactly one copy, which is what keeps polls from being queued twice, while the Subscriber can scale out freely. Writes come from the pipeline and reads are served from a Redis cache that the same events keep fresh, so busy dashboards never slow down the write path.
+**Publishers and subscribers instead of one big worker.** Scheduling and processing run as separate apps that only share message contracts. The Publisher runs as exactly one copy, which is what keeps polls from being queued twice, while the Subscriber can scale out freely. Only real changes are written to PostgreSQL, so the database sees few writes, and dashboards read it directly with queries shaped for each screen.
 
 **Read published feeds, never scrape.** StatusTide only reads formats vendors publish for programs: Atlassian Statuspage JSON, Slack's status API, Google Cloud's Atom feed and plain RSS or Atom. There is no HTML scraping and no LLM reading arbitrary pages. The trade-off is that some vendors can't be supported, and that's accepted. Before a vendor joins the catalog, its format, terms of service, API terms and robots.txt are reviewed and the decision is recorded in the database, and reviewed again every six months.
 
