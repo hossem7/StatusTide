@@ -4,7 +4,7 @@
 
 One dashboard for the status of every service your stack depends on, with independent checks running alongside each vendor's official status page.
 
-> **Project status: in development.** The plan, screen designs and backlog are done, and code starts with [milestone 1](https://github.com/hossem7/StatusTide/milestone/1). Nothing is deployed yet. Progress is tracked in [milestones](https://github.com/hossem7/StatusTide/milestones) and [issues](https://github.com/hossem7/StatusTide/issues).
+> **Project status: in development, not deployed yet.** Working today and runnable locally with Docker Compose: the ingestion pipeline, the live dashboard, the demo vendor you can break on purpose, guest mode, accounts, the service catalog, rate limits and our own checks every minute. In progress: the incident page with the "caught early" comparison. Next: Terraform and the first AWS deploy. Still to come: more feed readers, custom status pages, AI summaries and alerts. Progress is tracked in [milestones](https://github.com/hossem7/StatusTide/milestones) and [issues](https://github.com/hossem7/StatusTide/issues).
 
 ## The problem
 
@@ -59,7 +59,7 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 
 **One poll per vendor, not per user.** A thousand people following GitHub still means one request to GitHub per minute. This is the core of the architecture and the reason for the queue and the fingerprinting step above.
 
-**Publishers and subscribers instead of one big worker.** Scheduling and processing run as separate apps that only share message contracts. The Publisher runs as exactly one copy, which is what keeps polls from being queued twice, while the Subscriber can scale out freely. Writes come from the pipeline and reads are served from a Redis cache that the same events keep fresh, so busy dashboards never slow down the write path.
+**Publishers and subscribers instead of one big worker.** Scheduling and processing run as separate apps that only share message contracts. The Publisher runs as exactly one copy, which is what keeps polls from being queued twice, while the Subscriber can scale out freely. Only real changes are written to PostgreSQL, so the database sees few writes, and dashboards read it directly with queries shaped for each screen.
 
 **Read published feeds, never scrape.** StatusTide only reads formats vendors publish for programs: Atlassian Statuspage JSON, Slack's status API, Google Cloud's Atom feed and plain RSS or Atom. There is no HTML scraping and no LLM reading arbitrary pages. The trade-off is that some vendors can't be supported, and that's accepted. Before a vendor joins the catalog, its format, terms of service, API terms and robots.txt are reviewed and the decision is recorded in the database, and reviewed again every six months.
 
@@ -74,6 +74,23 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 **The server fetches URLs, so SSRF is designed in.** Account holders can add their own status page by URL, which means the server will fetch addresses users give it. Only http and https on ports 80 and 443 are allowed, DNS is resolved and private, loopback and link-local ranges are blocked (including the cloud metadata address 169.254.169.254), and every redirect is checked again. The EC2 instance also requires IMDSv2. Webhook URLs are limited to official Slack and Discord domains.
 
 **Sized to run for about $21 a month.** Production is one EC2 t3.small (2 GB of memory) running k3s, defined in Terraform so it can be torn down and rebuilt in one command. That budget ruled out SQL Server, Elasticsearch and a managed RDS database, so PostgreSQL runs in the cluster with daily backups to S3. CPU credits are set to "standard" so a traffic spike slows the server down instead of adding to the bill, and an AWS spend limit sits on top. No AWS access keys exist anywhere; the instance's IAM role grants access to S3, SES, Bedrock and CloudWatch.
+
+## Scaling beyond one node
+
+One small server is a choice made for cost, not a limit of the design. Load grows with the number of vendors in the catalog, not the number of users, so one t3.small goes a long way. A bigger setup costs far more before it serves anyone: the EKS control plane alone is about $73 a month, more than three times today's whole budget. So it waits for real traffic. Moving up is mostly configuration:
+
+| Today | At larger scale | What changes |
+| --- | --- | --- |
+| PostgreSQL in the cluster, daily backups to S3 | Amazon RDS for PostgreSQL, Multi-AZ | The connection string. Migrations already run as a deploy step in production (`Database:MigrateOnStartup` is off there). |
+| RabbitMQ in the cluster | Amazon MQ for RabbitMQ | The host and credentials. MassTransit speaks the same protocol. |
+| Redis in the cluster | Amazon ElastiCache | The connection string. |
+| k3s on one EC2 instance | Amazon EKS across availability zones | A new overlay. The manifests in `k8s/base` are plain Kubernetes, shared by k3d and k3s today. |
+
+Each app scales in its own way:
+
+- **Subscriber:** add replicas. RabbitMQ shares each queue between them, and every consumer is idempotent, so a message that is handled twice does no harm.
+- **Api:** HTTP requests can go to any replica. Sessions live in PostgreSQL (guest and refresh token hashes) or in the JWT, and rate limits live in Redis. Live updates are the exception: each SignalR connection stays on one replica, so a second replica needs the Redis backplane for SignalR, or some followers would miss pushes. That is the one code change on this list.
+- **Publisher:** stays at one replica. Its jobs only queue work, so it stays light at any size. The jobs that queue polls and checks also take a Redis lock, so a second copy during a rollout can't queue the same work twice.
 
 ## Tech stack
 
@@ -92,16 +109,16 @@ Messaging uses MassTransit over RabbitMQ. Every consumer retries failed messages
 
 ## Roadmap
 
-Each milestone ends with something that runs and can be demonstrated.
+Each milestone ends with something that runs and can be demonstrated. Milestones group work by topic. They are not done strictly in order: once the incident page is in, Terraform ([#41](https://github.com/hossem7/StatusTide/issues/41)) and the first AWS deploy ([#20](https://github.com/hossem7/StatusTide/issues/20)) come next, so the demo is live early. The rest of M4 and M5 follows.
 
-| Milestone | What it delivers |
-| --- | --- |
-| [M1: Foundation](https://github.com/hossem7/StatusTide/milestone/1) | Solution structure, Docker Compose, CI, database schema and migrations |
-| [M2: Ingestion pipeline](https://github.com/hossem7/StatusTide/milestone/2) | Statuspage reader, scheduler, poll queue, workers and change detection |
-| [M3: Core app](https://github.com/hossem7/StatusTide/milestone/3) | Live dashboard, demo vendor, guest mode, accounts, catalog, rate limits |
-| [M4: Checks, readers and AI](https://github.com/hossem7/StatusTide/milestone/4) | Our own checks, incident page, more readers, custom status pages, AI summaries |
-| [M5: Alerts and vendor vetting](https://github.com/hossem7/StatusTide/milestone/5) | Email and webhook alerts, format and terms review for every catalog vendor |
-| [M6: Launch](https://github.com/hossem7/StatusTide/milestone/6) | Terraform for all AWS infrastructure, AWS deployment, final documentation and a demo video |
+| Milestone | What it delivers | Status |
+| --- | --- | --- |
+| [M1: Foundation](https://github.com/hossem7/StatusTide/milestone/1) | Solution structure, Docker Compose, CI, database schema and migrations | Done |
+| [M2: Ingestion pipeline](https://github.com/hossem7/StatusTide/milestone/2) | Statuspage reader, scheduler, poll queue, workers and change detection | Done |
+| [M3: Core app](https://github.com/hossem7/StatusTide/milestone/3) | Live dashboard, demo vendor, guest mode, accounts, catalog, rate limits | Done |
+| [M4: Checks, readers and AI](https://github.com/hossem7/StatusTide/milestone/4) | Our own checks, incident page, more readers, custom status pages, AI summaries | Checks done, incident page in progress |
+| [M5: Alerts and vendor vetting](https://github.com/hossem7/StatusTide/milestone/5) | Email and webhook alerts, format and terms review for every catalog vendor | Planned |
+| [M6: Launch](https://github.com/hossem7/StatusTide/milestone/6) | Terraform for all AWS infrastructure, AWS deployment, final documentation and a demo video | Terraform and deploy next |
 
 ## Running it locally
 
@@ -166,7 +183,7 @@ Remove the cluster with `k3d cluster delete statustide`. The web app is not in t
 
 - Everything runs in containers, and each AWS service sits behind an interface with a local stand-in: SeaweedFS for S3 (MinIO no longer publishes Docker images), Mailpit for email, a fake summarizer for Bedrock and console logging for CloudWatch. Going to production is a configuration change, not a code change.
 - No real vendor is polled during development. Readers are built and tested against hand-written sample responses, plus the demo vendor.
-- The demo vendor, Acme Cloud, has no feed of its own. Its outage lives in Redis, and `POST /api/demo/outage` starts one (`DELETE` resolves it, `GET` shows its state). The incident appears within seconds and moves from investigating to monitoring. Every visitor shares the one outage, so it resolves itself after 5 minutes and the next one can start 2 minutes later.
+- The demo vendor, Acme Cloud, has no feed of its own. Its outage lives in Redis, and `POST /api/demo/outage` starts one (`DELETE` resolves it, `GET` shows its state). Like many real vendors, Acme only posts the incident 5 minutes after the outage starts, while our own checks call it down after about 3 minutes, so the incident page can show an early catch. Once posted, the incident moves from investigating to monitoring. Every visitor shares the one outage, so it resolves itself after 8 minutes and the next one can start 2 minutes later. An outage resolved before Acme posts it never becomes an incident.
 - `POST /api/guest` starts a guest session: a guest user that follows the starter vendors in `Guests:StarterVendors` (Acme Cloud for now), and a cookie that signs in later requests. `GET /api/me` shows who is signed in. The cookie is `Secure`. Chrome and Firefox accept that on `http://localhost`, so local development needs no HTTPS; Safari does not, so use one of the others locally.
 
 ## About the data
