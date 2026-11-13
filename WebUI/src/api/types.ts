@@ -108,6 +108,77 @@ export interface CatalogVendorDetail {
 export interface DemoOutage {
   state: 'none' | 'active' | 'coolingDown'
   startedAt: string | null
+  /**
+   * When Acme posts the incident on its status page. Until then only our own checks see the
+   * outage, so the dashboard shows no change. Null when it was resolved before Acme posted.
+   */
+  postsAt: string | null
   resolvesAt: string | null
   nextStartAt: string | null
+}
+
+// Mirrors the DTOs in StatusTide.Api/Features/Incidents/IncidentDtos.cs.
+
+export type IncidentStatus = 'investigating' | 'identified' | 'monitoring' | 'resolved'
+
+export interface IncidentComponent {
+  id: string
+  name: string
+  /** The component's status now, not at the time of the incident. */
+  status: ComponentStatus
+  /** The vendor named this component in the incident. */
+  isAffected: boolean
+  isFollowed: boolean
+}
+
+/** A status change the vendor posted. Their written text is never stored. */
+export interface VendorUpdate {
+  status: IncidentStatus
+  occurredAt: string
+}
+
+export interface CheckPoint {
+  checkedAt: string
+  succeeded: boolean
+  /** Null when no response came back, such as a timeout. */
+  statusCode: number | null
+  responseTimeMs: number | null
+}
+
+export interface EarlyDetection {
+  firstFailedAt: string
+  /** The 3rd failure in a row, when our checks called the vendor down. */
+  detectedAt: string
+  recoveredAt: string | null
+  vendorPostedAt: string
+  /** How long before the vendor's post we called it down. Negative when the vendor posted first. */
+  leadSeconds: number
+}
+
+export interface IncidentChecks {
+  from: string
+  to: string
+  /** Oldest first. Raw checks are kept for 7 days, so older incidents have none. */
+  points: CheckPoint[]
+  /** Null when our checks never found the vendor down around this incident. */
+  outage: EarlyDetection | null
+}
+
+export interface Incident {
+  id: string
+  /** Untrusted: the vendor's own text, so render it as text only. */
+  title: string
+  status: IncidentStatus
+  /** When the vendor first posted it. */
+  startedAt: string
+  resolvedAt: string | null
+  /** Not always a web address: check it with externalUrl before linking to it. */
+  sourceUrl: string
+  vendor: { id: string; slug: string; name: string; isDemo: boolean }
+  /** Components the incident names first, then the other ones the user follows. */
+  components: IncidentComponent[]
+  /** Newest first. */
+  updates: VendorUpdate[]
+  /** Null when we don't run our own checks on this vendor. */
+  checks: IncidentChecks | null
 }

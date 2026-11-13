@@ -158,6 +158,20 @@ public sealed class IncidentEndpointTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task An_earlier_blip_that_recovered_does_not_count_as_the_start()
+    {
+        var user = await _seed.AddGuestAsync();
+        var (vendor, incident) = await AddCheckedIncidentAsync(postedAt: Now.AddMinutes(-10));
+        await AddOutageAsync(vendor, firstFailedAt: Now.AddMinutes(-40), detectedAt: Now.AddMinutes(-38), resolvedAt: Now.AddMinutes(-30));
+        await AddOutageAsync(vendor, firstFailedAt: Now.AddMinutes(-16), detectedAt: Now.AddMinutes(-14), resolvedAt: null);
+
+        var checks = (await GetIncidentAsync(user, incident.Id)).Checks!;
+
+        Assert.Equal(Now.AddMinutes(-16), checks.Outage!.FirstFailedAt);
+        Assert.Equal(240, checks.Outage.LeadSeconds);
+    }
+
+    [Fact]
     public async Task A_long_incident_charts_only_its_first_hours()
     {
         var user = await _seed.AddGuestAsync();

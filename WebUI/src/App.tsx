@@ -5,6 +5,8 @@ import { usePath } from './components/navigation'
 import { catalogPath } from './features/catalog/catalogLabels'
 import { CatalogPage } from './features/catalog/CatalogPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
+import { IncidentPage } from './features/incident/IncidentPage'
+import { incidentIdFrom, isIncidentPath } from './features/incident/incidentPaths'
 import { AccountForm, type AccountFormMode } from './features/session/AccountForm'
 import { ConfirmEmailPage, confirmEmailPath } from './features/session/ConfirmEmailPage'
 import { GuestPrompt } from './features/session/GuestPrompt'
@@ -89,6 +91,10 @@ function Screen({ session, path, onCreateAccount }: { session: UseSession; path:
             onCreateAccount={onCreateAccount}
           />
         )
+      }
+      if (isIncidentPath(path)) {
+        const incidentId = incidentIdFrom(path)
+        return <IncidentPage key={`${state.me.id}-${incidentId}`} incidentId={incidentId} onSignedOut={markSignedOut} />
       }
       // A different user needs a new connection and a new snapshot, so the id is the key. A guest
       // who signs up keeps their id, and the hub still reaches them by that id.

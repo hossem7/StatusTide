@@ -108,16 +108,21 @@ public class IncidentQuery(StatusTideDbContext db, TimeProvider timeProvider)
         var now = timeProvider.GetUtcNow();
         var incidentEnd = resolvedAt ?? now;
 
-        // The first outage of ours that overlaps the incident, counting from an hour before the
-        // vendor's post. Served by the (vendor_id, detected_at) index.
+        // Our outages that overlap the incident, counting from an hour before the vendor's post.
+        // Few rows: served by the (vendor_id, detected_at) index and bounded by time.
         var matchFrom = postedAt - MatchBefore;
-        var outage = await db.CheckOutages
+        var candidates = await db.CheckOutages
             .AsNoTracking()
             .Where(o => o.VendorId == vendorId
                 && o.FirstFailedAt <= incidentEnd
                 && (o.ResolvedAt == null || o.ResolvedAt >= matchFrom))
             .OrderBy(o => o.FirstFailedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        // The latest one that began before the post is the problem the vendor posted about. An
+        // earlier one that already recovered is a separate blip, and counting from it would
+        // claim more lead than we had. With none before the post, the vendor was first.
+        var outage = candidates.LastOrDefault(o => o.FirstFailedAt <= postedAt) ?? candidates.FirstOrDefault();
 
         var start = outage is null || postedAt < outage.FirstFailedAt ? postedAt : outage.FirstFailedAt;
         var end = Later(incidentEnd, outage?.ResolvedAt);

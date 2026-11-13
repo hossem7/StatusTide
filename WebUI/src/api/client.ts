@@ -1,4 +1,4 @@
-import type { AuthResponse, Catalog, CatalogQuery, CatalogVendorDetail, Dashboard, DemoOutage, Me } from './types'
+import type { AuthResponse, Catalog, CatalogQuery, CatalogVendorDetail, Dashboard, DemoOutage, Incident, Me } from './types'
 
 /** A response other than 2xx. `status` lets screens tell "not signed in" from "server down". */
 export class ApiError extends Error {
@@ -142,4 +142,7 @@ export const api = {
       body: componentIds === null ? {} : { componentIds },
     }),
   unfollow: (vendorId: string) => request<void>('DELETE', `/api/follows/${encodeURIComponent(vendorId)}`),
+  /** 404 when the incident doesn't exist or the user may not see it. */
+  getIncident: (incidentId: string, signal?: AbortSignal) =>
+    request<Incident>('GET', `/api/incidents/${encodeURIComponent(incidentId)}`, { signal }),
 }

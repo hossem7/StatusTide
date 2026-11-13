@@ -47,7 +47,7 @@ describe('demo outage calls', () => {
     ['startDemoOutage', 'POST'],
     ['resolveDemoOutage', 'DELETE'],
   ] as const)('%s sends %s to /api/demo/outage', async (call, method) => {
-    const body = { state: 'active', startedAt: null, resolvesAt: null, nextStartAt: null }
+    const body = { state: 'active', startedAt: null, postsAt: null, resolvesAt: null, nextStartAt: null }
     vi.stubGlobal('fetch', vi.fn(async () => Response.json(body, { status: method === 'POST' ? 202 : 200 })))
 
     await expect(api[call]()).resolves.toEqual(body)
