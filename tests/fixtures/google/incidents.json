@@ -1,0 +1,67 @@
+[
+  {
+    "id": "gcpOpenOutage01",
+    "number": "1001",
+    "begin": "2026-11-14T10:00:00+00:00",
+    "created": "2026-11-14T10:05:00+00:00",
+    "modified": "2026-11-14T11:00:00+00:00",
+    "external_desc": "Compute and storage unavailable in one region",
+    "updates": [
+      {"created": "2026-11-14T11:00:00+00:00", "modified": "2026-11-14T11:00:00+00:00", "when": "2026-11-14T11:00:00+00:00", "text": "PLACEHOLDER UPDATE TEXT: second.", "status": "SERVICE_OUTAGE", "affected_locations": [{"title": "Region One", "id": "region-one1"}]},
+      {"created": "2026-11-14T10:05:00+00:00", "modified": "2026-11-14T10:05:00+00:00", "when": "2026-11-14T10:05:00+00:00", "text": "PLACEHOLDER UPDATE TEXT: first.", "status": "SERVICE_DISRUPTION", "affected_locations": []}
+    ],
+    "most_recent_update": {"created": "2026-11-14T11:00:00+00:00", "modified": "2026-11-14T11:00:00+00:00", "when": "2026-11-14T11:00:00+00:00", "text": "PLACEHOLDER UPDATE TEXT: second.", "status": "SERVICE_OUTAGE"},
+    "status_impact": "SERVICE_OUTAGE",
+    "severity": "high",
+    "service_key": "deprecated",
+    "service_name": "Deprecated",
+    "affected_products": [{"title": "Nimbus Compute", "id": "prodCompute0001"}, {"title": "Nimbus Storage", "id": "prodStorage0001"}, {"title": "Unknown product", "id": "prodGone0000001"}],
+    "currently_affected_locations": [{"title": "Region One", "id": "region-one1"}],
+    "previously_affected_locations": [],
+    "uri": "incidents/gcpOpenOutage01"
+  },
+  {
+    "id": "gcpOpenInfo0001",
+    "begin": "2026-11-14T09:00:00+00:00",
+    "created": "2026-11-14T09:00:00+00:00",
+    "modified": "2026-11-14T09:00:00+00:00",
+    "external_desc": "Storage console slow to load",
+    "updates": [{"created": "2026-11-14T09:00:00+00:00", "when": "2026-11-14T09:00:00+00:00", "text": "PLACEHOLDER UPDATE TEXT", "status": "SERVICE_INFORMATION"}],
+    "most_recent_update": {"when": "2026-11-14T09:00:00+00:00", "text": "PLACEHOLDER UPDATE TEXT", "status": "SERVICE_INFORMATION"},
+    "status_impact": "SERVICE_INFORMATION",
+    "severity": "medium",
+    "affected_products": [{"title": "Nimbus Storage", "id": "prodStorage0001"}, {"title": "Nimbus Queue", "id": "prodQueue000001"}],
+    "uri": "//elsewhere.example/phish"
+  },
+  {
+    "id": "gcpEndedToday01",
+    "begin": "2026-11-14T06:00:00+00:00",
+    "created": "2026-11-14T06:10:00+00:00",
+    "end": "2026-11-14T08:00:00+00:00",
+    "modified": "2026-11-14T08:00:00+00:00",
+    "external_desc": "Document processing errors",
+    "updates": [
+      {"when": "2026-11-14T06:10:00+00:00", "text": "PLACEHOLDER UPDATE TEXT", "status": "SERVICE_DISRUPTION"},
+      {"when": "2026-11-14T08:00:00+00:00", "text": "PLACEHOLDER UPDATE TEXT", "status": "AVAILABLE"}
+    ],
+    "most_recent_update": {"when": "2026-11-14T08:00:00+00:00", "text": "PLACEHOLDER UPDATE TEXT", "status": "AVAILABLE"},
+    "status_impact": "SERVICE_DISRUPTION",
+    "severity": "medium",
+    "affected_products": [{"title": "Nimbus Docs AI", "id": "prodDocsAi00001"}],
+    "uri": "incidents/gcpEndedToday01"
+  },
+  {
+    "id": "gcpEndedLongAgo",
+    "begin": "2026-10-01T06:00:00+00:00",
+    "end": "2026-10-01T07:00:00+00:00",
+    "external_desc": "Old incident, never loaded",
+    "status_impact": "SERVICE_OUTAGE",
+    "affected_products": [{"title": "Nimbus Compute", "id": "prodCompute0001"}],
+    "uri": "incidents/gcpEndedLongAgo"
+  },
+  {
+    "external_desc": "No id, skipped",
+    "begin": "2026-11-14T10:00:00+00:00",
+    "affected_products": [{"title": "Nimbus Queue", "id": "prodQueue000001"}]
+  }
+]

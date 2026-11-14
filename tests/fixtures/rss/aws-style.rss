@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Nimbus Cloud Service Status</title>
+    <link>https://health.nimbus.example/</link>
+    <description>PLACEHOLDER FEED DESCRIPTION</description>
+    <item>
+      <title>Service is operating normally: [RESOLVED] Increased API error rates</title>
+      <link>https://health.nimbus.example/#api-1</link>
+      <pubDate>Sat, 14 Nov 2026 02:30:00 PST</pubDate>
+      <guid isPermaLink="false">https://health.nimbus.example/#api-1763116200-resolved</guid>
+      <description>PLACEHOLDER UPDATE TEXT</description>
+    </item>
+    <item>
+      <title>Service disruption: Increased API error rates</title>
+      <link>https://health.nimbus.example/#api-1</link>
+      <pubDate>Sat, 14 Nov 2026 01:00:00 PST</pubDate>
+      <guid isPermaLink="false">https://health.nimbus.example/#api-1763110800</guid>
+      <description>PLACEHOLDER UPDATE TEXT</description>
+    </item>
+    <item>
+      <title>Informational message: Console sign-in slow</title>
+      <link>javascript:alert(1)</link>
+      <pubDate>Sat, 14 Nov 2026 03:15:00 -0800</pubDate>
+      <guid isPermaLink="false">https://health.nimbus.example/#console-1763118900</guid>
+      <description>PLACEHOLDER UPDATE TEXT</description>
+    </item>
+    <item>
+      <title>Service degradation: Old item from last week</title>
+      <pubDate>Sat, 07 Nov 2026 09:00:00 GMT</pubDate>
+      <guid>old-item-1</guid>
+    </item>
+    <item>
+      <title></title>
+      <pubDate>Sat, 14 Nov 2026 11:00:00 GMT</pubDate>
+      <guid>no-title</guid>
+    </item>
+    <item>
+      <title>No date, skipped</title>
+      <guid>no-date</guid>
+    </item>
+  </channel>
+</rss>

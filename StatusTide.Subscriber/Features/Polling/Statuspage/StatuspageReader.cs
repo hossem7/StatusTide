@@ -12,12 +12,6 @@ namespace StatusTide.Subscriber.Features.Polling.Statuspage;
 /// </summary>
 public class StatuspageReader(FeedClient feeds) : IStatusReader
 {
-    // Match the column sizes in StatusTide.Data.
-    private const int MaxIdLength = 200;
-    private const int MaxNameLength = 200;
-    private const int MaxTitleLength = 500;
-    private const int MaxUrlLength = 2048;
-
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -66,8 +60,8 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
         // Groups only hold other components and have no status of their own worth following.
         foreach (var component in components.Where(c => !c.Group))
         {
-            var id = Clean(component.Id, MaxIdLength);
-            var name = Clean(component.Name, MaxNameLength);
+            var id = FeedText.Clean(component.Id, FeedText.MaxIdLength);
+            var name = FeedText.Clean(component.Name, FeedText.MaxNameLength);
             if (id is null || name is null || !seen.Add(id))
             {
                 continue;
@@ -81,7 +75,7 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
 
     private static IncidentSnapshot? MapIncident(StatuspageIncident incident, Uri feedUrl, HashSet<string> componentIds)
     {
-        var id = Clean(incident.Id, MaxIdLength);
+        var id = FeedText.Clean(incident.Id, FeedText.MaxIdLength);
         var startedAt = incident.StartedAt ?? incident.CreatedAt;
         if (id is null || startedAt is null)
         {
@@ -105,7 +99,7 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
 
         return new IncidentSnapshot(
             id,
-            Clean(incident.Name, MaxTitleLength) ?? "Untitled incident",
+            FeedText.Clean(incident.Name, FeedText.MaxTitleLength) ?? "Untitled incident",
             incident.ResolvedAt is null ? MapIncidentStatus(incident.Status) : IncidentStatus.Resolved,
             startedAt.Value,
             incident.ResolvedAt,
@@ -120,14 +114,8 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
     /// </summary>
     private static string SourceUrl(string? shortlink, Uri feedUrl, string incidentId)
     {
-        if (Uri.TryCreate(shortlink, UriKind.Absolute, out var link)
-            && (link.Scheme == Uri.UriSchemeHttps || link.Scheme == Uri.UriSchemeHttp)
-            && link.AbsoluteUri.Length <= MaxUrlLength)
-        {
-            return link.AbsoluteUri;
-        }
-
-        return new Uri(feedUrl, "/incidents/" + Uri.EscapeDataString(incidentId)).AbsoluteUri;
+        return FeedText.HttpUrl(shortlink)
+            ?? new Uri(feedUrl, "/incidents/" + Uri.EscapeDataString(incidentId)).AbsoluteUri;
     }
 
     private static ComponentStatus MapComponentStatus(string? status) => status switch
@@ -149,15 +137,4 @@ public class StatuspageReader(FeedClient feeds) : IStatusReader
         "resolved" or "postmortem" => IncidentStatus.Resolved,
         _ => IncidentStatus.Investigating,
     };
-
-    private static string? Clean(string? value, int maxLength)
-    {
-        var trimmed = value?.Trim();
-        if (string.IsNullOrEmpty(trimmed))
-        {
-            return null;
-        }
-
-        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
-    }
 }

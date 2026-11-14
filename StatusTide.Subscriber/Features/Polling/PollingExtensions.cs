@@ -2,6 +2,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using StatusTide.Common.Demo;
 using StatusTide.Subscriber.Features.Polling.Demo;
+using StatusTide.Subscriber.Features.Polling.Google;
+using StatusTide.Subscriber.Features.Polling.Rss;
+using StatusTide.Subscriber.Features.Polling.Slack;
 using StatusTide.Subscriber.Features.Polling.Statuspage;
 
 namespace StatusTide.Subscriber.Features.Polling;
@@ -22,7 +25,11 @@ public static class PollingExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpClient<FeedClient>(http => http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent));
         services.AddTransient<IStatusReader, StatuspageReader>();
+        services.AddTransient<IStatusReader, SlackReader>();
+        services.AddTransient<IStatusReader, GoogleCloudReader>();
+        services.AddTransient<IStatusReader, RssReader>();
         services.AddTransient<IStatusReader, DemoReader>();
+        services.Configure<RssOptions>(configuration.GetSection("Polling:Rss"));
         services.AddSingleton<DemoOutageStore>();
         services.AddSingleton<VendorPollState>();
         services.AddScoped<SnapshotWriter>();

