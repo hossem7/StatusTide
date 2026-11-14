@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Larkspur Status</title>
+  <id>tag:status.larkspur.example,2026:feed</id>
+  <updated>2026-11-14T11:30:00Z</updated>
+  <entry>
+    <id>tag:status.larkspur.example,2026:incident-7</id>
+    <title>[RESOLVED] Webhook deliveries delayed</title>
+    <link rel="alternate" href="https://status.larkspur.example/incidents/7"/>
+    <published>2026-11-14T08:00:00Z</published>
+    <updated>2026-11-14T09:45:00Z</updated>
+    <content type="html">PLACEHOLDER UPDATE TEXT</content>
+  </entry>
+  <entry>
+    <id>tag:status.larkspur.example,2026:incident-8</id>
+    <title>Dashboard errors for some users</title>
+    <link rel="self" href="https://status.larkspur.example/feed/8"/>
+    <link href="https://status.larkspur.example/incidents/8"/>
+    <published>2026-11-14T11:00:00+01:00</published>
+    <updated>2026-11-14T11:30:00Z</updated>
+    <summary>PLACEHOLDER UPDATE TEXT</summary>
+  </entry>
+</feed>

@@ -1,0 +1,62 @@
+{
+  "status": "active",
+  "date_created": "2026-11-14T04:00:00-08:00",
+  "date_updated": "2026-11-14T04:00:00-08:00",
+  "active_incidents": [
+    {
+      "id": "9001",
+      "date_created": "2026-11-14T02:10:00-08:00",
+      "date_updated": "2026-11-14T03:40:00-08:00",
+      "title": "Messages failing to send for some users",
+      "type": "outage",
+      "status": "active",
+      "url": "https://slack-status.example/2026-11/aaaa0001",
+      "services": ["Messaging", "Files"],
+      "notes": [
+        {"date_created": "2026-11-14T03:40:00-08:00", "body": "PLACEHOLDER UPDATE TEXT: second note."},
+        {"date_created": "2026-11-14T02:15:00-08:00", "body": "PLACEHOLDER UPDATE TEXT: first note."}
+      ],
+    },
+    {
+      "id": 9002,
+      "date_created": "2026-11-14T03:00:00-08:00",
+      "date_updated": "2026-11-14T03:00:00-08:00",
+      "title": "  Slow message delivery  ",
+      "type": "incident",
+      "status": "active",
+      "url": "javascript:alert(1)",
+      "services": ["Messaging", "Calls"],
+      "notes": [{"date_created": "2026-11-14T03:00:00-08:00", "body": "PLACEHOLDER UPDATE TEXT"}]
+    },
+    {
+      "id": "9003",
+      "date_created": "2026-11-14T01:00:00-08:00",
+      "date_updated": "2026-11-14T01:30:00-08:00",
+      "title": "Search results delayed",
+      "type": "notice",
+      "status": "resolved",
+      "url": "https://slack-status.example/2026-11/aaaa0003",
+      "services": ["Search"],
+      "notes": [{"date_created": "2026-11-14T01:05:00-08:00", "body": "PLACEHOLDER UPDATE TEXT"}]
+    },
+    {
+      "id": "9004",
+      "date_created": "2026-11-15T01:00:00-08:00",
+      "date_updated": "2026-11-14T01:00:00-08:00",
+      "title": "Planned maintenance for Huddles",
+      "type": "notice",
+      "status": "scheduled",
+      "url": "https://slack-status.example/2026-11/aaaa0004",
+      "services": ["Huddles"],
+      "notes": []
+    },
+    {
+      "id": "",
+      "date_created": "2026-11-14T01:00:00-08:00",
+      "title": "No id, skipped",
+      "type": "outage",
+      "status": "active",
+      "services": ["Login/SSO"]
+    }
+  ]
+}

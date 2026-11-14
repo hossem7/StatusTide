@@ -203,7 +203,7 @@ public class FeedClientTests
     }
 
     [Fact]
-    public void AddPolling_registers_readers_for_Statuspage_and_the_demo_vendor()
+    public void AddPolling_registers_one_reader_for_every_feed_format()
     {
         // The demo reader needs Redis. Nothing is read here, so an address with no server is enough.
         var configuration = new ConfigurationBuilder()
@@ -214,10 +214,9 @@ public class FeedClientTests
             .AddPolling(configuration)
             .BuildServiceProvider(validateScopes: true);
 
-        var formats = provider.GetServices<IStatusReader>().Select(r => r.Format);
+        var formats = provider.GetServices<IStatusReader>().Select(r => r.Format).Order();
 
-        Assert.Contains(FeedFormat.Statuspage, formats);
-        Assert.Contains(FeedFormat.Demo, formats);
+        Assert.Equal(Enum.GetValues<FeedFormat>().Order(), formats);
     }
 
     static FakeFeed Failing(HttpStatusCode status, RetryConditionHeaderValue retryAfter) =>
