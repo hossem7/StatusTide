@@ -47,8 +47,12 @@ public class SetFollowsCommand(StatusTideDbContext db, TimeProvider timeProvider
             return SetFollowsOutcome.NotSignedIn;
         }
 
-        // Catalog vendors only, for everyone. Custom pages (#16) will add the pages an account owns.
-        var vendorExists = await db.Vendors.AnyAsync(v => v.Id == vendorId && v.IsCatalog && v.IsEnabled, cancellationToken);
+        // Catalog vendors, plus custom pages this user already follows so they can choose components.
+        // A custom page is first followed through AddCustomPageCommand, which checks its own limit.
+        var vendorExists = await db.Vendors.AnyAsync(
+            v => v.Id == vendorId && v.IsEnabled
+                && (v.IsCatalog || db.Follows.Any(f => f.UserId == userId && f.Component!.VendorId == v.Id)),
+            cancellationToken);
         if (!vendorExists)
         {
             return SetFollowsOutcome.VendorNotFound;
@@ -93,9 +97,30 @@ public class SetFollowsCommand(StatusTideDbContext db, TimeProvider timeProvider
 
     /// <summary>
     /// Unfollows a vendor. Works for a vendor that has since left the catalog, since people must
-    /// always be able to stop following something. Only ever touches this user's rows.
+    /// always be able to stop following something. Only ever touches this user's rows. A custom
+    /// page that nobody follows any more stops being polled; adding it again switches it back on.
     /// </summary>
-    public Task UnfollowAsync(Guid userId, Guid vendorId, CancellationToken cancellationToken) => db.Follows
-        .Where(f => f.UserId == userId && f.Component!.VendorId == vendorId)
-        .ExecuteDeleteAsync(cancellationToken);
+    public async Task UnfollowAsync(Guid userId, Guid vendorId, CancellationToken cancellationToken)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
+        // Same lock as AddCustomPageCommand, so a follow can't be added between the count and the switch-off.
+        var vendor = (await db.Vendors
+            .FromSql($"SELECT * FROM vendors WHERE id = {vendorId} FOR UPDATE")
+            .ToListAsync(cancellationToken))
+            .SingleOrDefault();
+
+        await db.Follows
+            .Where(f => f.UserId == userId && f.Component!.VendorId == vendorId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        if (vendor is { IsCatalog: false, IsEnabled: true }
+            && !await db.Follows.AnyAsync(f => f.Component!.VendorId == vendorId, cancellationToken))
+        {
+            vendor.IsEnabled = false;
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+    }
 }

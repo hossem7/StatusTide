@@ -5,6 +5,7 @@ using StatusTide.Common.Redis;
 using StatusTide.Data;
 using StatusTide.Subscriber.Features.Accounts;
 using StatusTide.Subscriber.Features.Checks;
+using StatusTide.Subscriber.Features.CustomPages;
 using StatusTide.Subscriber.Features.Polling;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddStatusTideData(builder.Configuration);
 builder.Services.AddStatusTideRedis(builder.Configuration);
 builder.Services.AddPolling(builder.Configuration);
 builder.Services.AddChecks(builder.Configuration);
+builder.Services.AddScoped<FeedDetector>();
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
 // Every IConsumer<T> in this project is registered and gets its own queue, along with its

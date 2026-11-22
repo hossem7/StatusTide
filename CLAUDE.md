@@ -38,7 +38,7 @@ Publishers and subscribers that only talk through RabbitMQ, using MassTransit.
 | Project | Holds | May reference |
 | --- | --- | --- |
 | `StatusTide.Contracts` | Message records: commands (`PollVendor`) and events (`VendorStatusChanged`) | Nothing |
-| `StatusTide.Common` | Shared plumbing: `AddStatusTideLogging`, `AddStatusTideMessaging`, `AddStatusTideRedis`, retry policy, CorrelationId in consumer logs, `DemoOutageStore` (the demo vendor's outage in Redis, written by the Api and read by the Subscriber) | Contracts |
+| `StatusTide.Common` | Shared plumbing: `AddStatusTideLogging`, `AddStatusTideMessaging`, `AddStatusTideRedis`, retry policy, CorrelationId in consumer logs, `DemoOutageStore` (the demo vendor's outage in Redis, written by the Api and read by the Subscriber), the SSRF guard in `Outbound` (`OutboundUrl` for the shape of a URL, `OutboundHandler` for the HTTP handler every outside fetch uses) | Contracts |
 | `StatusTide.Data` | `StatusTideDbContext`, entities and their configurations (one folder per feature), migrations, the Acme Cloud seed | Nothing |
 | `StatusTide.Api` | Controllers, SignalR hub, query handlers for screens | Contracts, Common, Data |
 | `StatusTide.Publisher` | Quartz.NET jobs: publishing commands on a schedule, and nightly housekeeping such as deleting inactive guests and rolling up our own checks into hourly rows. Always one replica. | Contracts, Common, Data |
@@ -65,7 +65,7 @@ Rules:
 - **MassTransit stays on 8.x.** Version 9 and later need a commercial license. Do not accept upgrade PRs that move it to 9.
 - **No real vendor polling in development or tests.** Use the sample responses in `tests/fixtures` and the demo vendor (Acme Cloud). Fixtures are written by hand in the documented format, never copied from a real vendor, since real responses carry update text we must not store. Only vendors approved through the verification process in the plan go live.
 - **Store and show facts only**: statuses, component names, incident titles, timestamps and source links. Never store or display a vendor's written update text. AI summaries use only those facts plus our own check data.
-- **Treat every fetched URL and every incident title as untrusted.** URLs go through the SSRF guard (http/https, ports 80 and 443, no private, loopback or link-local addresses, every redirect re-checked). Incident titles are wrapped as data in AI prompts.
+- **Treat every fetched URL and every incident title as untrusted.** URLs go through the SSRF guard (http/https, ports 80 and 443, no private, loopback or link-local addresses, every redirect re-checked). Any new `HttpClient` that calls outside the cluster uses `OutboundHandler.Create` as its primary handler. `Outbound:TrustedHosts` is for local fixture servers only and stays empty in production. Incident titles are wrapped as data in AI prompts.
 - **Never store a token we can be asked to check.** Guest cookies, refresh tokens and email links are `SecureToken`s, saved only as a hash. No token goes in a message or a log.
 - **No secrets in the repo and no AWS access keys anywhere.** Production uses the EC2 IAM role. Local values live in `appsettings.Development.json` (fake development credentials only) or `.env`, never committed.
 - **Commits and PRs are authored by the person making the change.** No AI co-author trailers and no "Generated with" lines in commits or PR descriptions, whoever opens the PR. When you take over someone else's work, keep their commits under their name and add yours on top.

@@ -16,6 +16,9 @@ public enum StatusReadFailure
     /// <summary>DNS, connection or TLS failure.</summary>
     Unreachable,
 
+    /// <summary>The SSRF guard refused the address or port, possibly after a redirect.</summary>
+    Blocked,
+
     /// <summary>The body was not the format we expected.</summary>
     Malformed,
 }

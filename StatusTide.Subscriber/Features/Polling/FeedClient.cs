@@ -1,10 +1,13 @@
 using System.Net;
 
+using StatusTide.Common.Outbound;
+
 namespace StatusTide.Subscriber.Features.Polling;
 
 /// <summary>
 /// Fetches feed bodies for every reader with the polite polling rules: conditional requests,
-/// a 10 second timeout and a 1 MB body limit. Failures become <see cref="StatusReadException"/>.
+/// a 10 second timeout and a 1 MB body limit. Requests go through the SSRF guard
+/// (<see cref="OutboundHandler"/>), which also checks every redirect. Failures become <see cref="StatusReadException"/>.
 /// </summary>
 public class FeedClient(HttpClient http, TimeProvider timeProvider)
 {
@@ -61,6 +64,10 @@ public class FeedClient(HttpClient http, TimeProvider timeProvider)
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
             throw new StatusReadException(StatusReadFailure.Timeout, $"Feed did not respond within {Timeout.TotalSeconds} seconds.");
+        }
+        catch (HttpRequestException e) when (OutboundHandler.IsBlocked(e, out var reason))
+        {
+            throw new StatusReadException(StatusReadFailure.Blocked, reason, e);
         }
         catch (HttpRequestException e)
         {

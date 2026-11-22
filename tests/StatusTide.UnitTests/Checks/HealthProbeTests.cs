@@ -128,7 +128,13 @@ public class HealthProbeTests
         }, Cancel);
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["Polling:UserAgent"] = "StatusTideTest/1.0" })
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Polling:UserAgent"] = "StatusTideTest/1.0",
+
+                // The SSRF guard refuses localhost unless it is trusted by name.
+                ["Outbound:TrustedHosts:0"] = "localhost",
+            })
             .Build();
         await using var services = new ServiceCollection()
             .AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(_ => null!)
@@ -136,7 +142,8 @@ public class HealthProbeTests
             .BuildServiceProvider();
 
         var result = await services.GetRequiredService<HealthProbe>().ProbeAsync(new Uri($"http://localhost:{port}/health"), Cancel);
-        await server;
+        // Fails instead of hanging when the probe never reaches the server.
+        await server.WaitAsync(TimeSpan.FromSeconds(10), Cancel);
 
         Assert.Equal(302, result.StatusCode);
         Assert.False(result.Succeeded);
