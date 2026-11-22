@@ -7,7 +7,7 @@ namespace StatusTide.Api.Features.Catalog;
 
 /// <summary>
 /// What a user can follow, and how much of it they already do. Only enabled catalog vendors
-/// appear, so a vendor that was removed or a page someone else added can't be found here.
+/// appear in the list, so a vendor that was removed or a page someone else added can't be found here.
 /// </summary>
 public class CatalogQuery(StatusTideDbContext db)
 {
@@ -42,11 +42,14 @@ public class CatalogQuery(StatusTideDbContext db)
         return new CatalogDto(rows);
     }
 
-    /// <summary>One vendor for the component picker, or null when it can't be followed.</summary>
+    /// <summary>One vendor for the component picker, or null when this user can't follow it.</summary>
     public async Task<CatalogVendorDetailDto?> GetVendorAsync(Guid userId, Guid vendorId, CancellationToken cancellationToken)
     {
-        var vendor = await Followable()
-            .Where(v => v.Id == vendorId)
+        // Custom pages appear only to the people who follow them.
+        var vendor = await db.Vendors
+            .AsNoTracking()
+            .Where(v => v.Id == vendorId && v.IsEnabled
+                && (v.IsCatalog || db.Follows.Any(f => f.UserId == userId && f.Component!.VendorId == v.Id)))
             .Select(v => new { v.Id, v.Name, v.StatusPageUrl })
             .SingleOrDefaultAsync(cancellationToken);
         if (vendor is null)

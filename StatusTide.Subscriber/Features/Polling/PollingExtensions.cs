@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 using StatusTide.Common.Demo;
+using StatusTide.Common.Outbound;
 using StatusTide.Subscriber.Features.Polling.Demo;
 using StatusTide.Subscriber.Features.Polling.Google;
 using StatusTide.Subscriber.Features.Polling.Rss;
@@ -23,7 +25,10 @@ public static class PollingExtensions
         var userAgent = configuration["Polling:UserAgent"] is { Length: > 0 } configured ? configured : DefaultUserAgent;
 
         services.TryAddSingleton(TimeProvider.System);
-        services.AddHttpClient<FeedClient>(http => http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent));
+        services.Configure<OutboundOptions>(configuration.GetSection("Outbound"));
+        services.AddHttpClient<FeedClient>(http => http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent))
+            .ConfigurePrimaryHttpMessageHandler(provider =>
+                OutboundHandler.Create(provider.GetRequiredService<IOptions<OutboundOptions>>().Value, followRedirects: true));
         services.AddTransient<IStatusReader, StatuspageReader>();
         services.AddTransient<IStatusReader, SlackReader>();
         services.AddTransient<IStatusReader, GoogleCloudReader>();

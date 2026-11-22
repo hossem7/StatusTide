@@ -10,14 +10,16 @@ namespace StatusTide.IntegrationTests;
 /// <summary>
 /// Runs the real API in memory against its own database in the test container,
 /// with migrations on startup, the same as local development. The bus is the in-memory
-/// test harness, so tests can see what the API publishes without a RabbitMQ.
+/// test harness, so tests can see what the API publishes without a RabbitMQ, and can add
+/// consumers that stand in for the Subscriber.
 /// Each instance gets its own rate limit keys, so tests sharing one Redis don't share limits.
 /// </summary>
 public sealed class ApiFactory(
     PostgresFixture postgres,
     string database,
     Action<IServiceCollection>? configureServices = null,
-    IReadOnlyDictionary<string, string?>? settings = null)
+    IReadOnlyDictionary<string, string?>? settings = null,
+    Action<IBusRegistrationConfigurator>? configureBus = null)
     : WebApplicationFactory<Program>
 {
     public string ConnectionString { get; } = postgres.ConnectionString(database);
@@ -35,7 +37,7 @@ public sealed class ApiFactory(
 
         builder.ConfigureTestServices(services =>
         {
-            services.AddMassTransitTestHarness();
+            services.AddMassTransitTestHarness(bus => configureBus?.Invoke(bus));
             configureServices?.Invoke(services);
         });
     }
